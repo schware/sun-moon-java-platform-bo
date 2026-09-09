@@ -1,0 +1,38 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /bo
+    session:
+      cookie:
+        http-only: true
+        same-site: lax
+        # Plain HTTP on the LAN for now; a Secure cookie would simply never
+        # be sent. Must become true the moment BO is served over TLS.
+        secure: false
+
+spring:
+  application:
+    name: sun-moon-java-platform-bo
+  datasource:
+    url: jdbc:postgresql://localhost:5432/bo_service
+    username: sunmoon
+    password: sunmoon_dev_pw
+  sql:
+    init:
+      mode: always
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus,info
+  endpoint:
+    health:
+      show-details: always
+
+# The first 전체 관리자. Seeded only when the operator table is empty, and
+# never with a guessable default - unset means "seed nothing and say so".
+bo:
+  admin:
+    username: ${BO_ADMIN_USERNAME:}
+    password: ${BO_ADMIN_PASSWORD:}
