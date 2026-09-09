@@ -57,3 +57,30 @@ CREATE TABLE IF NOT EXISTS posts (
 );
 
 CREATE INDEX IF NOT EXISTS idx_posts_created_at ON posts (created_at DESC);
+
+-- 대/중/소 size tiers deliberately excluded for now. image_url is a plain
+-- link, not a stored file — there is no file/object storage in this
+-- family yet, and building one is out of scope for a first pass.
+CREATE TABLE IF NOT EXISTS menus (
+    menu_code VARCHAR(64) PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    image_url VARCHAR(500),
+    description VARCHAR(500),
+    active BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+-- A menu's price is never a single column — it's whichever row here
+-- covers the lookup date. end_date NULL means "open-ended", i.e. still
+-- the current price. Overlap between two rows for the same menu is
+-- rejected in MenuService, not here: Postgres range-exclusion constraints
+-- need btree_gist, which is more machinery than this needs.
+CREATE TABLE IF NOT EXISTS menu_prices (
+    id BIGSERIAL PRIMARY KEY,
+    menu_code VARCHAR(64) NOT NULL REFERENCES menus(menu_code),
+    price NUMERIC(10,2) NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE,
+    CHECK (end_date IS NULL OR end_date >= start_date)
+);
+
+CREATE INDEX IF NOT EXISTS idx_menu_prices_menu_code ON menu_prices (menu_code, start_date);

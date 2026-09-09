@@ -37,6 +37,7 @@ screen returned JSON.
 | `/bo/board` | 공지사항 |
 | `/bo/common-code` | 공통코드 |
 | `/bo/devices` | 장비 |
+| `/bo/menus` | 메뉴 |
 
 | | Endpoint | Permission |
 |---|---|---|
@@ -56,10 +57,29 @@ screen returned JSON.
 | 신규 | `POST /api/devices` | `DEVICE_CREATE` |
 | 저장 | `PUT /api/devices` | `DEVICE_SAVE` |
 | 삭제 | `DELETE /api/devices?deviceId=` | `DEVICE_DELETE` |
+| 조회 | `GET /api/menus` (오늘 기준 가격 포함) | `MENU_VIEW` |
+| 신규 | `POST /api/menus` | `MENU_CREATE` |
+| 저장 | `PUT /api/menus` | `MENU_SAVE` |
+| 삭제 | `DELETE /api/menus?menuCode=` (가격 이력도 함께 삭제) | `MENU_DELETE` |
+| 조회 | `GET /api/menus/{menuCode}/prices` | `MENU_VIEW` |
+| 신규 | `POST /api/menus/{menuCode}/prices` (겹치는 기간은 409) | `MENU_SAVE` |
+| 삭제 | `DELETE /api/menus/{menuCode}/prices/{id}` | `MENU_SAVE` |
+| 조회 | `GET /api/menus/{menuCode}/price?date=` (연동 시 사용할 유효 가격) | `MENU_VIEW` |
 
 Board keys on a numeric id in the path; Common Code and Device keep their
 keys in the query string, a carry-over from the Netty router that had no
-path variables.
+path variables. Menu is newer and uses a path variable for `menuCode`
+(query string only for delete, matching the others), and price rows nest
+under it by their own numeric id.
+
+A menu's price is never a single column on the menu row — it is a
+history of `menu_prices` rows, each valid for a date range (`endDate`
+null = open-ended, still current). `GET /api/menus/{menuCode}/price?date=`
+resolves the one row that covers a given date; that is what "메뉴 연동"
+should call rather than reading any single "current price" field, because
+there isn't one. Adding a price row that overlaps an existing one for the
+same menu is rejected with 409 — there is deliberately no way for two
+rows to disagree about what the price was on some date.
 
 Swagger UI at `/bo/swagger-ui/index.html`.
 
@@ -177,3 +197,7 @@ enforcement** — every controller method still carries its own
 - **Distributed sessions.** Jetty's in-memory session store means one
   instance and a logout for everyone on each deploy. Spring Session +
   Redis is the upgrade, and Redis is already on the server.
+- **대/중/소 메뉴 옵션.** Menus are single, size-less items for now.
+- **Stored menu images.** `imageUrl` is a plain link — there is no
+  file/object storage in this family yet, so an operator hosts the image
+  somewhere else and pastes the URL.

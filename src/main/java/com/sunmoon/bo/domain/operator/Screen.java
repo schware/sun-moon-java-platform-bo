@@ -8,5 +8,6 @@ public enum Screen {
     BOARD,
     COMMON_CODE,
     DEVICE,
+    MENU,
     OPERATOR
 }

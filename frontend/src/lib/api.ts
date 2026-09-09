@@ -46,6 +46,26 @@ export interface Device {
   active: boolean
 }
 
+export interface Menu {
+  menuCode: string
+  name: string
+  imageUrl: string | null
+  description: string | null
+  active: boolean
+}
+
+export interface MenuSummary extends Menu {
+  currentPrice: number | null
+}
+
+export interface MenuPrice {
+  id: number
+  menuCode: string
+  price: number
+  startDate: string
+  endDate: string | null
+}
+
 /**
  * Spring rotates the CSRF token on login, so it is read per write rather
  * than cached. One extra round trip on a screen used by a handful of

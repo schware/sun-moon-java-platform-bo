@@ -7,6 +7,7 @@ import HomePage from './pages/HomePage'
 import BoardPage from './pages/BoardPage'
 import CommonCodePage from './pages/CommonCodePage'
 import DevicesPage from './pages/DevicesPage'
+import MenuPage from './pages/MenuPage'
 
 type Session = { state: 'loading' } | { state: 'out' } | { state: 'in'; me: Me }
 
@@ -48,6 +49,7 @@ export default function App() {
         <Route path="/board" element={<BoardPage me={me} />} />
         <Route path="/common-code" element={<CommonCodePage me={me} />} />
         <Route path="/devices" element={<DevicesPage me={me} />} />
+        <Route path="/menus" element={<MenuPage me={me} />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

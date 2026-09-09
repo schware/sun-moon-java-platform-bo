@@ -168,6 +168,7 @@ th, td { text-align: left; padding: 11px 12px; border-bottom: 1px solid var(--bo
 th { color: var(--muted); font-weight: 500; font-size: 12.5px; white-space: nowrap; }
 tbody tr:last-child td { border-bottom: none; }
 tbody tr:hover { background: #151922; }
+tbody tr.active { background: rgba(91, 140, 255, 0.08); }
 td.actions { white-space: nowrap; text-align: right; }
 .clickable { cursor: pointer; }
 
