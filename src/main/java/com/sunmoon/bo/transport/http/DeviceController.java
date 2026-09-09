@@ -26,7 +26,7 @@ import java.util.List;
  * belong to the Device Server, which does not exist yet.
  */
 @RestController
-@RequestMapping("/devices")
+@RequestMapping("/api/devices")
 @Tag(name = "Devices", description = "장비 기준 정보 관리")
 public class DeviceController {
 

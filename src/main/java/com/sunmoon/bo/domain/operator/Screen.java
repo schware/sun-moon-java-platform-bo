@@ -5,6 +5,7 @@ package com.sunmoon.bo.domain.operator;
  * screen list changes with deployments, not by an operator's own action.
  */
 public enum Screen {
+    BOARD,
     COMMON_CODE,
     DEVICE,
     OPERATOR

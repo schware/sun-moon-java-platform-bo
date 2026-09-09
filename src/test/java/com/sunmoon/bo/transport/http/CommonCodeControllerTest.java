@@ -40,13 +40,13 @@ class CommonCodeControllerTest {
 
     @Test
     void rejectsAnonymousWith401() throws Exception {
-        mockMvc.perform(get("/common-code")).andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/api/common-code")).andExpect(status().isUnauthorized());
     }
 
     @Test
     @WithMockUser(authorities = "DEVICE_VIEW")
     void rejectsAWrongScreensPermissionWith403() throws Exception {
-        mockMvc.perform(get("/common-code")).andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/common-code")).andExpect(status().isForbidden());
     }
 
     @Test
@@ -55,7 +55,7 @@ class CommonCodeControllerTest {
         when(service.list(nullable(String.class)))
                 .thenReturn(List.of(new CommonCode("ORDER_STATUS", "PENDING", "대기", 1, true)));
 
-        mockMvc.perform(get("/common-code"))
+        mockMvc.perform(get("/api/common-code"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].code").value("PENDING"))
                 .andExpect(jsonPath("$[0].name").value("대기"));
@@ -64,7 +64,7 @@ class CommonCodeControllerTest {
     @Test
     @WithMockUser(authorities = "COMMON_CODE_VIEW")
     void viewDoesNotImplyCreate() throws Exception {
-        mockMvc.perform(post("/common-code").with(csrf())
+        mockMvc.perform(post("/api/common-code").with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"groupCode\":\"G\",\"code\":\"C\",\"name\":\"N\",\"sortOrder\":1}"))
                 .andExpect(status().isForbidden());
@@ -75,7 +75,7 @@ class CommonCodeControllerTest {
     void createsForAnOperatorWithCreate() throws Exception {
         when(service.create(any(CommonCode.class))).thenReturn(true);
 
-        mockMvc.perform(post("/common-code").with(csrf())
+        mockMvc.perform(post("/api/common-code").with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"groupCode\":\"G\",\"code\":\"C\",\"name\":\"N\",\"sortOrder\":1}"))
                 .andExpect(status().isCreated())
@@ -87,7 +87,7 @@ class CommonCodeControllerTest {
     void reportsADuplicateAs409() throws Exception {
         when(service.create(any(CommonCode.class))).thenReturn(false);
 
-        mockMvc.perform(post("/common-code").with(csrf())
+        mockMvc.perform(post("/api/common-code").with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"groupCode\":\"G\",\"code\":\"C\",\"name\":\"N\",\"sortOrder\":1}"))
                 .andExpect(status().isConflict());
@@ -98,13 +98,13 @@ class CommonCodeControllerTest {
     void superAdminBypassesScreenPermissions() throws Exception {
         when(service.list(nullable(String.class))).thenReturn(List.of());
 
-        mockMvc.perform(get("/common-code")).andExpect(status().isOk());
+        mockMvc.perform(get("/api/common-code")).andExpect(status().isOk());
     }
 
     @Test
     @WithMockUser(authorities = "COMMON_CODE_CREATE")
     void rejectsAWriteWithoutACsrfToken() throws Exception {
-        mockMvc.perform(post("/common-code")
+        mockMvc.perform(post("/api/common-code")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"groupCode\":\"G\",\"code\":\"C\",\"name\":\"N\",\"sortOrder\":1}"))
                 .andExpect(status().isForbidden());
@@ -113,7 +113,7 @@ class CommonCodeControllerTest {
     @Test
     @WithMockUser(authorities = "COMMON_CODE_CREATE")
     void rejectsAnInvalidBody() throws Exception {
-        mockMvc.perform(post("/common-code").with(csrf())
+        mockMvc.perform(post("/api/common-code").with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"groupCode\":\"\",\"code\":\"C\",\"name\":\"N\",\"sortOrder\":1}"))
                 .andExpect(status().isBadRequest());

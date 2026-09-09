@@ -41,7 +41,7 @@ class DeviceControllerTest {
         when(service.list(nullable(String.class)))
                 .thenReturn(List.of(new Device("kds-01", "주방 1번", "KDS", "1층", true)));
 
-        mockMvc.perform(get("/devices"))
+        mockMvc.perform(get("/api/devices"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].deviceId").value("kds-01"))
                 .andExpect(jsonPath("$[0].name").value("주방 1번"));
@@ -50,7 +50,7 @@ class DeviceControllerTest {
     @Test
     @WithMockUser(authorities = "DEVICE_VIEW")
     void saveNeedsItsOwnPermission() throws Exception {
-        mockMvc.perform(put("/devices").with(csrf())
+        mockMvc.perform(put("/api/devices").with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"deviceId\":\"kds-01\",\"name\":\"N\",\"deviceType\":\"KDS\"}"))
                 .andExpect(status().isForbidden());
@@ -61,7 +61,7 @@ class DeviceControllerTest {
     void reportsASaveOfAMissingDeviceAs404() throws Exception {
         when(service.save(any(Device.class))).thenReturn(false);
 
-        mockMvc.perform(put("/devices").with(csrf())
+        mockMvc.perform(put("/api/devices").with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"deviceId\":\"nope\",\"name\":\"N\",\"deviceType\":\"KDS\"}"))
                 .andExpect(status().isNotFound());
@@ -72,7 +72,7 @@ class DeviceControllerTest {
     void deletesByQueryStringKey() throws Exception {
         when(service.delete(anyString())).thenReturn(true);
 
-        mockMvc.perform(delete("/devices").with(csrf()).param("deviceId", "kds-01"))
+        mockMvc.perform(delete("/api/devices").with(csrf()).param("deviceId", "kds-01"))
                 .andExpect(status().isNoContent());
     }
 }

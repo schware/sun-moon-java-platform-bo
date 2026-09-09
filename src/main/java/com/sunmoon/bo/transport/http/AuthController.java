@@ -20,7 +20,7 @@ import java.util.Map;
  * currently logged in as.
  */
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
 @Tag(name = "Auth", description = "운영자 인증")
 public class AuthController {
 

@@ -69,7 +69,7 @@ class LoginFlowTest {
 
     @Test
     void csrfTokenIsAvailableWithoutLoggingIn() throws Exception {
-        mockMvc.perform(get("/auth/csrf"))
+        mockMvc.perform(get("/api/auth/csrf"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.headerName").value("X-XSRF-TOKEN"))
                 .andExpect(jsonPath("$.token").isNotEmpty());
@@ -80,7 +80,7 @@ class LoginFlowTest {
         MockHttpSession session = new MockHttpSession();
         Csrf csrf = fetchCsrf(session);
 
-        mockMvc.perform(post("/auth/login").session(session)
+        mockMvc.perform(post("/api/auth/login").session(session)
                         .cookie(csrf.cookie())
                         .header("X-XSRF-TOKEN", csrf.token())
                         .param("username", USERNAME)
@@ -88,7 +88,7 @@ class LoginFlowTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.username").value(USERNAME));
 
-        mockMvc.perform(get("/auth/me").session(session))
+        mockMvc.perform(get("/api/auth/me").session(session))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.username").value(USERNAME))
                 .andExpect(jsonPath("$.superAdmin").value(false))
@@ -99,14 +99,14 @@ class LoginFlowTest {
     void theSessionCarriesOnlyThePermissionsThatOperatorHas() throws Exception {
         MockHttpSession session = new MockHttpSession();
         Csrf csrf = fetchCsrf(session);
-        mockMvc.perform(post("/auth/login").session(session)
+        mockMvc.perform(post("/api/auth/login").session(session)
                         .cookie(csrf.cookie()).header("X-XSRF-TOKEN", csrf.token())
                         .param("username", USERNAME).param("password", PASSWORD))
                 .andExpect(status().isOk());
 
         // DEVICE_VIEW was granted; nothing on the common-code screen was.
-        mockMvc.perform(get("/devices").session(session)).andExpect(status().isOk());
-        mockMvc.perform(get("/common-code").session(session)).andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/devices").session(session)).andExpect(status().isOk());
+        mockMvc.perform(get("/api/common-code").session(session)).andExpect(status().isForbidden());
     }
 
     @Test
@@ -114,20 +114,20 @@ class LoginFlowTest {
         MockHttpSession session = new MockHttpSession();
         Csrf csrf = fetchCsrf(session);
 
-        mockMvc.perform(post("/auth/login").session(session)
+        mockMvc.perform(post("/api/auth/login").session(session)
                         .cookie(csrf.cookie()).header("X-XSRF-TOKEN", csrf.token())
                         .param("username", USERNAME).param("password", "wrong"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.error").value("Invalid username or password"));
 
-        mockMvc.perform(get("/auth/me").session(session)).andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/api/auth/me").session(session)).andExpect(status().isUnauthorized());
     }
 
     @Test
     void loggingOutInvalidatesTheSession() throws Exception {
         MockHttpSession session = new MockHttpSession();
         Csrf csrf = fetchCsrf(session);
-        mockMvc.perform(post("/auth/login").session(session)
+        mockMvc.perform(post("/api/auth/login").session(session)
                         .cookie(csrf.cookie()).header("X-XSRF-TOKEN", csrf.token())
                         .param("username", USERNAME).param("password", PASSWORD))
                 .andExpect(status().isOk());
@@ -135,12 +135,12 @@ class LoginFlowTest {
         // The token rotates on login, which is why the README says to
         // re-read /auth/csrf afterwards.
         Csrf afterLogin = fetchCsrf(session);
-        mockMvc.perform(post("/auth/logout").session(session)
+        mockMvc.perform(post("/api/auth/logout").session(session)
                         .cookie(afterLogin.cookie()).header("X-XSRF-TOKEN", afterLogin.token()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.loggedOut").value(true));
 
-        mockMvc.perform(get("/auth/me").session(session)).andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/api/auth/me").session(session)).andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -156,7 +156,7 @@ class LoginFlowTest {
     }
 
     private Csrf fetchCsrf(MockHttpSession session) throws Exception {
-        MvcResult result = mockMvc.perform(get("/auth/csrf").session(session))
+        MvcResult result = mockMvc.perform(get("/api/auth/csrf").session(session))
                 .andExpect(status().isOk())
                 .andReturn();
         Cookie cookie = result.getResponse().getCookie("XSRF-TOKEN");

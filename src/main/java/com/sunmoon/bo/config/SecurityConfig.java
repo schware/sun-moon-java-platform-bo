@@ -54,12 +54,20 @@ public class SecurityConfig {
                         // for it. BO has no page that would, so resolve eagerly.
                         .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/login", "/auth/csrf").permitAll()
+                        .requestMatchers("/api/auth/login", "/api/auth/csrf").permitAll()
                         .requestMatchers("/actuator/health", "/actuator/prometheus", "/actuator/info").permitAll()
-                        .requestMatchers("/", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        // The built React app. These are static files with no
+                        // data in them; every screen behind them still calls an
+                        // API that checks the session and the permission.
+                        .requestMatchers("/", "/index.html", "/assets/**", "/favicon.ico", "/vite.svg").permitAll()
+                        // The SPA's own routes. They forward to index.html
+                        // (WebConfig); the screens behind them still fetch an
+                        // API that checks the session and the permission.
+                        .requestMatchers("/board", "/common-code", "/devices").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .anyRequest().authenticated())
                 .formLogin(form -> form
-                        .loginProcessingUrl("/auth/login")
+                        .loginProcessingUrl("/api/auth/login")
                         .successHandler((request, response, authentication) ->
                                 writeJson(response, HttpServletResponse.SC_OK, Map.of(
                                         "username", authentication.getName(),
@@ -69,7 +77,7 @@ public class SecurityConfig {
                                 writeJson(response, HttpServletResponse.SC_UNAUTHORIZED,
                                         Map.of("error", "Invalid username or password"))))
                 .logout(logout -> logout
-                        .logoutUrl("/auth/logout")
+                        .logoutUrl("/api/auth/logout")
                         .deleteCookies("JSESSIONID")
                         .logoutSuccessHandler((request, response, authentication) ->
                                 writeJson(response, HttpServletResponse.SC_OK, Map.of("loggedOut", true))))

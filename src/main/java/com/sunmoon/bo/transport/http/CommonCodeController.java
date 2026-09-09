@@ -27,7 +27,7 @@ import java.util.List;
  * a missing annotation rather than as an absence somewhere else.
  */
 @RestController
-@RequestMapping("/common-code")
+@RequestMapping("/api/common-code")
 @Tag(name = "Common Code", description = "공통코드 관리")
 public class CommonCodeController {
 

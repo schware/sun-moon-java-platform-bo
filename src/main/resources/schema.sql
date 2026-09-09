@@ -43,3 +43,17 @@ CREATE TABLE IF NOT EXISTS devices (
     location VARCHAR(200),
     active BOOLEAN NOT NULL DEFAULT TRUE
 );
+
+-- 공지사항. author is the operator username as it was at posting time,
+-- not a foreign key: a notice should stay readable after its author's
+-- account is removed.
+CREATE TABLE IF NOT EXISTS posts (
+    id BIGSERIAL PRIMARY KEY,
+    title VARCHAR(200) NOT NULL,
+    content TEXT NOT NULL,
+    author VARCHAR(64) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_posts_created_at ON posts (created_at DESC);
