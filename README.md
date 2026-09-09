@@ -9,9 +9,10 @@ tied together by the
 [umbrella repo](https://github.com/schware/sun-moon-java-platform) via git
 submodules.
 
-Operator accounts, 공통코드, and device master data. Spring Boot 3.3.4 on
-embedded Jetty, PostgreSQL via `JdbcTemplate`, one Docker container, port
-**8080**, context-path **`/bo`**.
+Operator accounts, 공지사항, 공통코드, and device master data — an API
+**and the console that drives it**. Spring Boot 3.3.4 on embedded Jetty,
+PostgreSQL via `JdbcTemplate`, a React + TypeScript UI served from the same
+jar, one Docker container, port **8080**, context-path **`/bo`**.
 
 Replaces
 [sun-moon-platform-bo-netty](https://github.com/schware/sun-moon-platform-bo-netty)
@@ -26,22 +27,41 @@ family not built like the others.
 
 All paths are under the `/bo` context-path.
 
+**Screens** are client-routed paths; **the API** lives under `/api`. They
+are separated because `/bo/board` was once both, and refreshing the board
+screen returned JSON.
+
+| Screen path | |
+|---|---|
+| `/bo/` | home — a summary of what this operator may do |
+| `/bo/board` | 공지사항 |
+| `/bo/common-code` | 공통코드 |
+| `/bo/devices` | 장비 |
+
 | | Endpoint | Permission |
 |---|---|---|
-| | `GET /auth/csrf` | — (call this first) |
-| | `POST /auth/login` | — |
-| | `POST /auth/logout` | authenticated |
-| | `GET /auth/me` | authenticated |
-| 조회 | `GET /common-code` (`?group=`) | `COMMON_CODE_VIEW` |
-| 신규 | `POST /common-code` | `COMMON_CODE_CREATE` |
-| 저장 | `PUT /common-code` | `COMMON_CODE_SAVE` |
-| 삭제 | `DELETE /common-code?group=&code=` | `COMMON_CODE_DELETE` |
-| 조회 | `GET /devices` (`?type=`) | `DEVICE_VIEW` |
-| 신규 | `POST /devices` | `DEVICE_CREATE` |
-| 저장 | `PUT /devices` | `DEVICE_SAVE` |
-| 삭제 | `DELETE /devices?deviceId=` | `DEVICE_DELETE` |
+| | `GET /api/auth/csrf` | — (call this first) |
+| | `POST /api/auth/login` | — |
+| | `POST /api/auth/logout` | authenticated |
+| | `GET /api/auth/me` | authenticated |
+| 조회 | `GET /api/board`, `GET /api/board/{id}` | `BOARD_VIEW` |
+| 신규 | `POST /api/board` | `BOARD_CREATE` |
+| 저장 | `PUT /api/board/{id}` | `BOARD_SAVE` |
+| 삭제 | `DELETE /api/board/{id}` | `BOARD_DELETE` |
+| 조회 | `GET /api/common-code` (`?group=`) | `COMMON_CODE_VIEW` |
+| 신규 | `POST /api/common-code` | `COMMON_CODE_CREATE` |
+| 저장 | `PUT /api/common-code` | `COMMON_CODE_SAVE` |
+| 삭제 | `DELETE /api/common-code?group=&code=` | `COMMON_CODE_DELETE` |
+| 조회 | `GET /api/devices` (`?type=`) | `DEVICE_VIEW` |
+| 신규 | `POST /api/devices` | `DEVICE_CREATE` |
+| 저장 | `PUT /api/devices` | `DEVICE_SAVE` |
+| 삭제 | `DELETE /api/devices?deviceId=` | `DEVICE_DELETE` |
 
-Swagger UI at `/bo/swagger-ui/index.html`; `/` redirects there.
+Board keys on a numeric id in the path; Common Code and Device keep their
+keys in the query string, a carry-over from the Netty router that had no
+path variables.
+
+Swagger UI at `/bo/swagger-ui/index.html`.
 
 ## Authorization — three tiers
 
@@ -72,22 +92,23 @@ CSRF protection is on, with the token in a readable `XSRF-TOKEN` cookie.
 ## Trying it with curl
 
 ```bash
-BO=http://localhost:8080/bo
+API=http://localhost:8080/bo/api
 
 # 1. get a CSRF token (also sets the cookie jar)
-TOKEN=$(curl -s -c jar.txt $BO/auth/csrf | sed 's/.*"token":"\([^"]*\)".*/\1/')
+TOKEN=$(curl -s -c jar.txt $API/auth/csrf | sed 's/.*"token":"\([^"]*\)".*/\1/')
 
 # 2. log in (form-encoded — this is Spring Security's own filter)
 curl -s -b jar.txt -c jar.txt -H "X-XSRF-TOKEN: $TOKEN" \
-  -d "username=admin&password=..." $BO/auth/login
+  -d "username=admin&password=..." $API/auth/login
 
 # 3. the session cookie is now in the jar
-curl -s -b jar.txt $BO/auth/me
-curl -s -b jar.txt $BO/common-code
+curl -s -b jar.txt $API/auth/me
+curl -s -b jar.txt $API/board
 ```
 
-Writes need the header on every call; re-read `$BO/auth/csrf` after login,
-because the token rotates.
+Writes need the header on every call; re-read `$API/auth/csrf` after login,
+because the token rotates. Send Korean as UTF-8 — a shell that hands curl
+CP949 gets a 400, which is a client bug that reads like a server one.
 
 ## Configuration
 
@@ -123,13 +144,36 @@ scope the firewall rule to the subnet:
 sudo ufw allow from 192.168.0.0/24 to any port 8080 proto tcp
 ```
 
+## The console
+
+`frontend/` is a Vite + React + TypeScript app whose build output lands in
+`src/main/resources/static`, so it ships **inside the jar and on the same
+origin as the API**. That is the point: the session cookie and the CSRF
+token need no CORS, and BO has no CORS configuration to give them.
+
+```bash
+cd frontend
+npm install
+npm run build     # → ../src/main/resources/static
+npm run dev       # proxies /bo/api to a BO already running on :8080
+```
+
+You do not need Node to deploy. The Dockerfile builds the frontend in a
+`node:20-alpine` stage and copies only the output forward, which is why
+the deploy host still has no Node on it.
+
+The left menu lists only screens the operator has some permission on, and
+any button that would return 403 is disabled. **That is presentation, not
+enforcement** — every controller method still carries its own
+`@PreAuthorize`, and the server is what actually refuses.
+
 ## Not built yet
 
 - **Operator management screen.** The `OPERATOR` screen exists as an enum
   value with no endpoints behind it, so tiers 2 and 3 are enforced but not
   yet administrable — permissions can only be set by SQL or the startup
-  seed.
-- **A Frontend.** BO is an API; the screens above are curl calls today.
+  seed. Until that exists, the only account is the seeded super admin, and
+  the permission-aware menu has nothing to hide from it.
 - **Distributed sessions.** Jetty's in-memory session store means one
   instance and a logout for everyone on each deploy. Spring Session +
   Redis is the upgrade, and Redis is already on the server.
