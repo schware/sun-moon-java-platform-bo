@@ -46,6 +46,14 @@ export interface Device {
   active: boolean
 }
 
+export interface Store {
+  storeId: string
+  name: string
+  phone: string | null
+  address: string | null
+  active: boolean
+}
+
 export interface Menu {
   menuCode: string
   name: string

@@ -38,6 +38,7 @@ screen returned JSON.
 | `/bo/common-code` | 공통코드 |
 | `/bo/devices` | 장비 |
 | `/bo/menus` | 메뉴 |
+| `/bo/stores` | 매장 |
 
 | | Endpoint | Permission |
 |---|---|---|
@@ -65,6 +66,10 @@ screen returned JSON.
 | 신규 | `POST /api/menus/{menuCode}/prices` (겹치는 기간은 409) | `MENU_SAVE` |
 | 삭제 | `DELETE /api/menus/{menuCode}/prices/{id}` | `MENU_SAVE` |
 | 조회 | `GET /api/menus/{menuCode}/price?date=` (연동 시 사용할 유효 가격) | `MENU_VIEW` |
+| 조회 | `GET /api/stores` | `STORE_VIEW` |
+| 신규 | `POST /api/stores` | `STORE_CREATE` |
+| 저장 | `PUT /api/stores` | `STORE_SAVE` |
+| 삭제 | `DELETE /api/stores?storeId=` | `STORE_DELETE` |
 
 Board keys on a numeric id in the path; Common Code and Device keep their
 keys in the query string, a carry-over from the Netty router that had no
@@ -197,6 +202,15 @@ enforcement** — every controller method still carries its own
 - **Distributed sessions.** Jetty's in-memory session store means one
   instance and a logout for everyone on each deploy. Spring Session +
   Redis is the upgrade, and Redis is already on the server.
+- **매장의 개점/마감 상태.** The 매장 screen holds 기준 정보 only. Whether
+  a store is currently open and which 영업일자 it is on is operational
+  state owned by the Order service — it stamps a 매출일자 on every order
+  and mints the 거래번호 at acceptance, so a network hop to BO inside a
+  sale would be the wrong shape. POS opens and closes the store through
+  the Device Server; BO will read that state back for display, which is
+  not wired yet.
+- **매장별 메뉴.** Menus are not yet tied to stores, so every store
+  offers the same list.
 - **대/중/소 메뉴 옵션.** Menus are single, size-less items for now.
 - **Stored menu images.** `imageUrl` is a plain link — there is no
   file/object storage in this family yet, so an operator hosts the image

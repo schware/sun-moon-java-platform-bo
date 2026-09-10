@@ -58,6 +58,19 @@ CREATE TABLE IF NOT EXISTS posts (
 
 CREATE INDEX IF NOT EXISTS idx_posts_created_at ON posts (created_at DESC);
 
+-- 매장 기준 정보 only. Whether a store is currently 개점 or 마감, and which
+-- 영업일자 it is on, is operational state and lives in the Order service —
+-- every order stamps a 매출일자 and every acceptance mints a 거래번호 there,
+-- and asking BO on each of those would put a network hop inside the sale.
+-- BO reads that state back for display.
+CREATE TABLE IF NOT EXISTS stores (
+    store_id VARCHAR(64) PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    phone VARCHAR(30),
+    address VARCHAR(300),
+    active BOOLEAN NOT NULL DEFAULT TRUE
+);
+
 -- 대/중/소 size tiers deliberately excluded for now. image_url is a plain
 -- link, not a stored file — there is no file/object storage in this
 -- family yet, and building one is out of scope for a first pass.

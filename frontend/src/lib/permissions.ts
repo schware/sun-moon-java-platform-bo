@@ -10,7 +10,7 @@ import type { Me } from './api'
  * as security.
  */
 
-export const SCREENS = ['BOARD', 'COMMON_CODE', 'DEVICE', 'MENU', 'OPERATOR'] as const
+export const SCREENS = ['BOARD', 'COMMON_CODE', 'DEVICE', 'MENU', 'STORE', 'OPERATOR'] as const
 export type Screen = (typeof SCREENS)[number]
 
 export const ACTIONS = ['VIEW', 'CREATE', 'SAVE', 'DELETE'] as const
@@ -37,5 +37,6 @@ export const MENU: MenuItem[] = [
   { screen: 'BOARD', path: '/board', label: '공지사항' },
   { screen: 'COMMON_CODE', path: '/common-code', label: '공통코드' },
   { screen: 'DEVICE', path: '/devices', label: '장비' },
-  { screen: 'MENU', path: '/menus', label: '메뉴' }
+  { screen: 'MENU', path: '/menus', label: '메뉴' },
+  { screen: 'STORE', path: '/stores', label: '매장' }
 ]
