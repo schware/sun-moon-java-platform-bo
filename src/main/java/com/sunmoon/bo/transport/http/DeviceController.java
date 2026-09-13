@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -76,6 +77,19 @@ public class DeviceController {
         return service.delete(deviceId)
                 ? ResponseEntity.noContent().build()
                 : ResponseEntity.status(HttpStatus.NOT_FOUND).body(notFound(deviceId));
+    }
+
+    @PostMapping("/{deviceId}/connection-check")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasAuthority('DEVICE_VIEW')")
+    @Operation(summary = "연결 확인",
+            description = "등록된 IP:PORT로 TCP 연결을 시도합니다. 단말이 붙어 있는지는 Device Server의 "
+                    + "접속 현황이 정확한 답이고, 이건 그 주소에 뭔가 응답하는지를 보는 보조 확인입니다.")
+    @ApiResponse(responseCode = "404", description = "No such deviceId")
+    public ResponseEntity<?> checkConnection(@PathVariable String deviceId) {
+        return service.checkConnection(deviceId)
+                .<ResponseEntity<?>>map(result -> ResponseEntity.ok(
+                        java.util.Map.of("deviceId", deviceId, "result", result)))
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(notFound(deviceId)));
     }
 
     private static java.util.Map<String, String> notFound(String deviceId) {

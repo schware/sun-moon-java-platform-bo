@@ -38,13 +38,20 @@ export interface CommonCode {
   active: boolean
 }
 
+export type TerminalType = 'POS' | 'KDS' | 'DID'
+
 export interface Device {
   deviceId: string
   name: string
   deviceType: string
   location: string | null
+  terminalType: TerminalType | null
+  ipAddress: string | null
+  port: number | null
   active: boolean
 }
+
+export type ConnectionCheckResult = 'REACHABLE' | 'UNREACHABLE' | 'NO_ADDRESS'
 
 export interface Store {
   storeId: string

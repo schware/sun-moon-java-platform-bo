@@ -36,13 +36,25 @@ CREATE TABLE IF NOT EXISTS common_codes (
 -- device_type is expected to name a common_codes row in the DEVICE_TYPE
 -- group, but is deliberately not a foreign key: common codes are editable
 -- at runtime, and a dangling type should not make a device row unreadable.
+-- terminal_type is a separate, narrower column from device_type: it is one
+-- of the Device Server's own POS/KDS/DID values for a device that
+-- connects there, null for equipment that doesn't. ip_address/port are
+-- addresses BO can dial to check "is anything answering" — not the same
+-- fact as the Device Server's own live connection registry.
 CREATE TABLE IF NOT EXISTS devices (
     device_id VARCHAR(64) PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     device_type VARCHAR(64) NOT NULL,
     location VARCHAR(200),
+    terminal_type VARCHAR(16),
+    ip_address VARCHAR(45),
+    port INT,
     active BOOLEAN NOT NULL DEFAULT TRUE
 );
+
+ALTER TABLE devices ADD COLUMN IF NOT EXISTS terminal_type VARCHAR(16);
+ALTER TABLE devices ADD COLUMN IF NOT EXISTS ip_address VARCHAR(45);
+ALTER TABLE devices ADD COLUMN IF NOT EXISTS port INT;
 
 -- 공지사항. author is the operator username as it was at posting time,
 -- not a foreign key: a notice should stay readable after its author's

@@ -1,6 +1,7 @@
 package com.sunmoon.bo.transport.http;
 
 import com.sunmoon.bo.config.SecurityConfig;
+import com.sunmoon.bo.domain.device.ConnectionCheckResult;
 import com.sunmoon.bo.domain.device.Device;
 import com.sunmoon.bo.domain.device.DeviceService;
 import org.junit.jupiter.api.Test;
@@ -13,11 +14,13 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -39,7 +42,7 @@ class DeviceControllerTest {
     @WithMockUser(authorities = "DEVICE_VIEW")
     void listsDevices() throws Exception {
         when(service.list(nullable(String.class)))
-                .thenReturn(List.of(new Device("kds-01", "주방 1번", "KDS", "1층", true)));
+                .thenReturn(List.of(new Device("kds-01", "주방 1번", "KDS", "1층", "KDS", "192.168.0.50", 80, true)));
 
         mockMvc.perform(get("/api/devices"))
                 .andExpect(status().isOk())
@@ -74,5 +77,24 @@ class DeviceControllerTest {
 
         mockMvc.perform(delete("/api/devices").with(csrf()).param("deviceId", "kds-01"))
                 .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @WithMockUser(authorities = "DEVICE_VIEW")
+    void reportsWhetherTheRecordedAddressAnswers() throws Exception {
+        when(service.checkConnection("kds-01")).thenReturn(Optional.of(ConnectionCheckResult.REACHABLE));
+
+        mockMvc.perform(post("/api/devices/kds-01/connection-check").with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.result").value("REACHABLE"));
+    }
+
+    @Test
+    @WithMockUser(authorities = "DEVICE_VIEW")
+    void connectionCheckOnAMissingDeviceIs404() throws Exception {
+        when(service.checkConnection("nope")).thenReturn(Optional.empty());
+
+        mockMvc.perform(post("/api/devices/nope/connection-check").with(csrf()))
+                .andExpect(status().isNotFound());
     }
 }
