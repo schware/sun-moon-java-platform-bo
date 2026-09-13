@@ -86,13 +86,21 @@ CREATE TABLE IF NOT EXISTS stores (
 -- 대/중/소 size tiers deliberately excluded for now. image_url is a plain
 -- link, not a stored file — there is no file/object storage in this
 -- family yet, and building one is out of scope for a first pass.
+-- kds_device_id is not a foreign key, same reasoning as devices.terminal_type
+-- being freeform: not enforced yet, and it isn't what actually routes a
+-- real order today anyway — sun-moon-java-platform-channel-order's own
+-- catalog carries this independently, because that's what places real
+-- orders. This column is for when BO's menu master becomes the real one.
 CREATE TABLE IF NOT EXISTS menus (
     menu_code VARCHAR(64) PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     image_url VARCHAR(500),
     description VARCHAR(500),
+    kds_device_id VARCHAR(64),
     active BOOLEAN NOT NULL DEFAULT TRUE
 );
+
+ALTER TABLE menus ADD COLUMN IF NOT EXISTS kds_device_id VARCHAR(64);
 
 -- A menu's price is never a single column — it's whichever row here
 -- covers the lookup date. end_date NULL means "open-ended", i.e. still

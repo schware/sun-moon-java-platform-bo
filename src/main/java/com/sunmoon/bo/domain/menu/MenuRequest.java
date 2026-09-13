@@ -7,9 +7,10 @@ public record MenuRequest(
         @NotBlank String name,
         String imageUrl,
         String description,
+        String kdsDeviceId,
         Boolean active) {
 
     public Menu toDomain() {
-        return new Menu(menuCode, name, imageUrl, description, active == null || active);
+        return new Menu(menuCode, name, imageUrl, description, kdsDeviceId, active == null || active);
     }
 }

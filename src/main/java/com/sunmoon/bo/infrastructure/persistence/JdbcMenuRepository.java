@@ -13,12 +13,13 @@ import java.util.Optional;
 @Repository
 public class JdbcMenuRepository implements MenuRepository {
 
-    private static final String COLUMNS = "menu_code, name, image_url, description, active";
+    private static final String COLUMNS = "menu_code, name, image_url, description, kds_device_id, active";
     private static final RowMapper<Menu> MAPPER = (rs, rowNum) -> new Menu(
             rs.getString("menu_code"),
             rs.getString("name"),
             rs.getString("image_url"),
             rs.getString("description"),
+            rs.getString("kds_device_id"),
             rs.getBoolean("active"));
 
     private static final RowMapper<MenuSummary> SUMMARY_MAPPER = (rs, rowNum) -> new MenuSummary(
@@ -26,6 +27,7 @@ public class JdbcMenuRepository implements MenuRepository {
             rs.getString("name"),
             rs.getString("image_url"),
             rs.getString("description"),
+            rs.getString("kds_device_id"),
             rs.getBoolean("active"),
             rs.getBigDecimal("current_price"));
 
@@ -38,7 +40,8 @@ public class JdbcMenuRepository implements MenuRepository {
     @Override
     public List<MenuSummary> findAllWithCurrentPrice() {
         return jdbcTemplate.query("""
-                SELECT m.menu_code, m.name, m.image_url, m.description, m.active, p.price AS current_price
+                SELECT m.menu_code, m.name, m.image_url, m.description, m.kds_device_id, m.active,
+                       p.price AS current_price
                 FROM menus m
                 LEFT JOIN menu_prices p
                        ON p.menu_code = m.menu_code
@@ -58,15 +61,18 @@ public class JdbcMenuRepository implements MenuRepository {
     @Override
     public void insert(Menu menu) {
         jdbcTemplate.update(
-                "INSERT INTO menus (" + COLUMNS + ") VALUES (?, ?, ?, ?, ?)",
-                menu.menuCode(), menu.name(), menu.imageUrl(), menu.description(), menu.active());
+                "INSERT INTO menus (" + COLUMNS + ") VALUES (?, ?, ?, ?, ?, ?)",
+                menu.menuCode(), menu.name(), menu.imageUrl(), menu.description(), menu.kdsDeviceId(),
+                menu.active());
     }
 
     @Override
     public boolean update(Menu menu) {
         return jdbcTemplate.update(
-                "UPDATE menus SET name = ?, image_url = ?, description = ?, active = ? WHERE menu_code = ?",
-                menu.name(), menu.imageUrl(), menu.description(), menu.active(), menu.menuCode()) > 0;
+                "UPDATE menus SET name = ?, image_url = ?, description = ?, kds_device_id = ?, active = ? "
+                        + "WHERE menu_code = ?",
+                menu.name(), menu.imageUrl(), menu.description(), menu.kdsDeviceId(), menu.active(),
+                menu.menuCode()) > 0;
     }
 
     @Override

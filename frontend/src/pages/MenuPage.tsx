@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
-import { apiGet, apiWrite, type Me, type Menu, type MenuPrice, type MenuSummary } from '../lib/api'
+import { apiGet, apiWrite, type Device, type Me, type Menu, type MenuPrice, type MenuSummary } from '../lib/api'
 import { can } from '../lib/permissions'
 
 type Editing = { mode: 'none' } | { mode: 'new' } | { mode: 'edit' }
 
-const BLANK: Menu = { menuCode: '', name: '', imageUrl: '', description: '', active: true }
+const BLANK: Menu = { menuCode: '', name: '', imageUrl: '', description: '', kdsDeviceId: '', active: true }
 const BLANK_PRICE = { price: '', startDate: '', endDate: '' }
 
 function formatPrice(amount: number | null): string {
@@ -25,10 +25,13 @@ export default function MenuPage({ me }: { me: Me }) {
   const [priceError, setPriceError] = useState<string | null>(null)
   const [priceBusy, setPriceBusy] = useState(false)
 
+  const [kdsDevices, setKdsDevices] = useState<Device[]>([])
+
   const mayView = can(me, 'MENU', 'VIEW')
   const mayCreate = can(me, 'MENU', 'CREATE')
   const maySave = can(me, 'MENU', 'SAVE')
   const mayDelete = can(me, 'MENU', 'DELETE')
+  const mayReadDevices = can(me, 'DEVICE', 'VIEW')
 
   const load = useCallback(async () => {
     if (!mayView) {
@@ -46,9 +49,23 @@ export default function MenuPage({ me }: { me: Me }) {
     }
   }, [mayView])
 
+  // A convenience list for the select, not a constraint — same reasoning
+  // as DevicesPage's device-type datalist. Not enforced as a foreign key
+  // in the database either.
+  const loadKdsDevices = useCallback(async () => {
+    if (!mayReadDevices) return
+    try {
+      const devices = await apiGet<Device[]>('/devices')
+      setKdsDevices(devices.filter((d) => d.terminalType === 'KDS'))
+    } catch {
+      setKdsDevices([])
+    }
+  }, [mayReadDevices])
+
   useEffect(() => {
     void load()
-  }, [load])
+    void loadKdsDevices()
+  }, [load, loadKdsDevices])
 
   const loadPrices = useCallback(async (menuCode: string) => {
     setPriceError(null)
@@ -175,6 +192,19 @@ export default function MenuPage({ me }: { me: Me }) {
             <label htmlFor="description">설명</label>
             <input id="description" type="text" value={form.description ?? ''}
                    onChange={(e) => setForm({ ...form, description: e.target.value })} />
+          </div>
+          <div className="field">
+            <label htmlFor="kdsDeviceId">담당 KDS</label>
+            <select id="kdsDeviceId" value={form.kdsDeviceId ?? ''}
+                    onChange={(e) => setForm({ ...form, kdsDeviceId: e.target.value || null })}>
+              <option value="">지정 안 함 (모든 KDS로 전달)</option>
+              {kdsDevices.map((d) => (
+                <option key={d.deviceId} value={d.deviceId}>{d.name} ({d.deviceId})</option>
+              ))}
+            </select>
+            <p className="muted" style={{ margin: '4px 0 0' }}>
+              지금은 표시용입니다 — 실제 주문은 주문 채널 자신의 카탈로그가 담당 KDS를 정합니다.
+            </p>
           </div>
           <div className="field">
             <label htmlFor="active">사용여부</label>

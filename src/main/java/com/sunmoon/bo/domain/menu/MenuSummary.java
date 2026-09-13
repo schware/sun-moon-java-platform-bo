@@ -8,5 +8,6 @@ import java.math.BigDecimal;
  * screen should read as "가격 미등록", not zero.
  */
 public record MenuSummary(
-        String menuCode, String name, String imageUrl, String description, boolean active, BigDecimal currentPrice) {
+        String menuCode, String name, String imageUrl, String description, String kdsDeviceId, boolean active,
+        BigDecimal currentPrice) {
 }

@@ -66,6 +66,7 @@ export interface Menu {
   name: string
   imageUrl: string | null
   description: string | null
+  kdsDeviceId: string | null
   active: boolean
 }
 
