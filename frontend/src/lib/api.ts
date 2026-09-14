@@ -45,6 +45,8 @@ export interface Device {
   name: string
   deviceType: string
   location: string | null
+  /** Which 매장 the terminal stands in. Null for equipment that never connects. */
+  storeId: string | null
   terminalType: TerminalType | null
   ipAddress: string | null
   port: number | null
@@ -52,6 +54,81 @@ export interface Device {
 }
 
 export type ConnectionCheckResult = 'REACHABLE' | 'UNREACHABLE' | 'NO_ADDRESS'
+
+/**
+ * One row of 단말 현황 — what BO registered next to what the Device Server
+ * can see. `registered && !connected` is a dark screen; `!registered &&
+ * connected` is a terminal that connected as an id nobody entered.
+ */
+export interface TerminalStatus {
+  deviceId: string
+  terminalType: TerminalType
+  storeId: string | null
+  storeIds: string[] | null
+  name: string | null
+  location: string | null
+  ipAddress: string | null
+  port: number | null
+  registered: boolean
+  active: boolean
+  connected: boolean
+  connectedAt: string | null
+}
+
+/** 일자별 매출 집계. Counted by Order; BO only adds `storeName`. */
+export interface SalesSummary {
+  businessDate: string
+  storeId: string
+  storeName: string | null
+  orderCount: number
+  acceptedCount: number
+  rejectedCount: number
+  expiredCount: number
+  salesAmount: number
+}
+
+export interface SalesOrder {
+  id: number
+  storeId: string
+  customerId: string
+  menuName: string
+  amount: number
+  status: string
+  acceptedBy: string | null
+  businessDate: string
+  placedAt: string
+  updatedAt: string
+}
+
+export type ScreenAction = 'VIEW' | 'CREATE' | 'SAVE' | 'DELETE'
+
+export interface ScreenPermission {
+  screen: string
+  canView: boolean
+  canCreate: boolean
+  canSave: boolean
+  canDelete: boolean
+}
+
+/** Never carries the password hash — the server's OperatorSummary has no such field. */
+export interface Operator {
+  id: number
+  username: string
+  displayName: string
+  superAdmin: boolean
+  active: boolean
+  permissions: ScreenPermission[]
+}
+
+export interface OperatorRequest {
+  username: string
+  /** Blank on 저장 means "leave the existing password alone". */
+  password: string
+  displayName: string
+  superAdmin: boolean
+  active: boolean
+  permissions: ScreenPermission[]
+}
 
 export interface Store {
   storeId: string

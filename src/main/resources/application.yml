@@ -36,3 +36,12 @@ bo:
   admin:
     username: ${BO_ADMIN_USERNAME:}
     password: ${BO_ADMIN_PASSWORD:}
+  # The two services BO reads and never writes: 매출 settles in Order, and
+  # only the Device Server knows which terminals are connected. Both
+  # default to the deploy server's layout, where every container runs with
+  # --network host - so these are localhost, and Order carries its own
+  # /order context path.
+  order:
+    base-url: ${ORDER_SERVICE_URL:http://localhost:8083/order}
+  device-server:
+    base-url: ${DEVICE_SERVER_URL:http://localhost:8087}

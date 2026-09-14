@@ -10,5 +10,9 @@ public enum Screen {
     DEVICE,
     MENU,
     STORE,
+    /** 매출 조회. VIEW only — BO has no endpoint that writes 매출, by design. */
+    SALES,
+    /** 단말 현황. VIEW only — the connections belong to the Device Server. */
+    TERMINAL,
     OPERATOR
 }

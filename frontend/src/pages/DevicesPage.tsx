@@ -1,12 +1,15 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
-import { apiGet, apiWrite, type ConnectionCheckResult, type Device, type Me, type TerminalType } from '../lib/api'
+import {
+  apiGet, apiWrite,
+  type ConnectionCheckResult, type Device, type Me, type Store, type TerminalType
+} from '../lib/api'
 import { can } from '../lib/permissions'
 
 type Editing = { mode: 'none' } | { mode: 'new' } | { mode: 'edit' }
 type CheckState = 'checking' | ConnectionCheckResult
 
 const BLANK: Device = {
-  deviceId: '', name: '', deviceType: '', location: '',
+  deviceId: '', name: '', deviceType: '', location: '', storeId: null,
   terminalType: null, ipAddress: '', port: null, active: true
 }
 
@@ -20,6 +23,7 @@ const CHECK_LABEL: Record<CheckState, string> = {
 export default function DevicesPage({ me }: { me: Me }) {
   const [rows, setRows] = useState<Device[]>([])
   const [types, setTypes] = useState<string[]>([])
+  const [stores, setStores] = useState<Store[]>([])
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState<Editing>({ mode: 'none' })
@@ -32,6 +36,7 @@ export default function DevicesPage({ me }: { me: Me }) {
   const maySave = can(me, 'DEVICE', 'SAVE')
   const mayDelete = can(me, 'DEVICE', 'DELETE')
   const mayReadCodes = can(me, 'COMMON_CODE', 'VIEW')
+  const mayReadStores = can(me, 'STORE', 'VIEW')
 
   const load = useCallback(async () => {
     if (!mayView) {
@@ -66,6 +71,14 @@ export default function DevicesPage({ me }: { me: Me }) {
     void load()
     void loadTypes()
   }, [load, loadTypes])
+
+  // A terminal belongs to a 매장, and the Device Server identifies one by
+  // (매장, 단말기번호, 종류) — every branch has a pos-01. Picked from the
+  // 매장 master rather than typed, so 단말 현황 can actually match the two.
+  useEffect(() => {
+    if (!mayReadStores) return
+    apiGet<Store[]>('/stores').then(setStores).catch(() => setStores([]))
+  }, [mayReadStores])
 
   async function submit(event: FormEvent) {
     event.preventDefault()
@@ -179,6 +192,21 @@ export default function DevicesPage({ me }: { me: Me }) {
             </select>
           </div>
           <div className="field">
+            <label htmlFor="storeId">매장</label>
+            <select id="storeId" value={form.storeId ?? ''}
+                    onChange={(e) => setForm({ ...form, storeId: e.target.value || null })}>
+              <option value="">해당 없음</option>
+              {stores.map((s) => (
+                <option key={s.storeId} value={s.storeId}>{s.name}</option>
+              ))}
+            </select>
+            {form.terminalType && !form.storeId && (
+              <p className="muted">
+                단말종류가 있으면 매장을 지정해야 단말 현황에서 접속 중인 화면과 맞춰집니다.
+              </p>
+            )}
+          </div>
+          <div className="field">
             <label htmlFor="location">위치</label>
             <input id="location" type="text" value={form.location ?? ''}
                    onChange={(e) => setForm({ ...form, location: e.target.value })} />
@@ -220,7 +248,7 @@ export default function DevicesPage({ me }: { me: Me }) {
             <table>
               <thead>
                 <tr>
-                  <th>장비 ID</th><th>이름</th><th>유형</th><th>단말종류</th>
+                  <th>장비 ID</th><th>이름</th><th>유형</th><th>단말종류</th><th>매장</th>
                   <th>위치</th><th>IP:PORT</th><th>사용</th><th /><th />
                 </tr>
               </thead>
@@ -233,6 +261,11 @@ export default function DevicesPage({ me }: { me: Me }) {
                       <td>{row.name}</td>
                       <td>{row.deviceType}</td>
                       <td className="muted">{row.terminalType ?? ''}</td>
+                      <td className="muted">
+                        {row.storeId
+                          ? stores.find((s) => s.storeId === row.storeId)?.name ?? row.storeId
+                          : ''}
+                      </td>
                       <td className="muted">{row.location ?? ''}</td>
                       <td className="muted">
                         {row.ipAddress && row.port ? `${row.ipAddress}:${row.port}` : ''}

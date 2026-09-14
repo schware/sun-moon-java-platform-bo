@@ -9,6 +9,9 @@ import CommonCodePage from './pages/CommonCodePage'
 import DevicesPage from './pages/DevicesPage'
 import MenuPage from './pages/MenuPage'
 import StoresPage from './pages/StoresPage'
+import SalesPage from './pages/SalesPage'
+import TerminalsPage from './pages/TerminalsPage'
+import OperatorsPage from './pages/OperatorsPage'
 
 type Session = { state: 'loading' } | { state: 'out' } | { state: 'in'; me: Me }
 
@@ -52,6 +55,9 @@ export default function App() {
         <Route path="/devices" element={<DevicesPage me={me} />} />
         <Route path="/menus" element={<MenuPage me={me} />} />
         <Route path="/stores" element={<StoresPage me={me} />} />
+        <Route path="/sales" element={<SalesPage me={me} />} />
+        <Route path="/terminals" element={<TerminalsPage me={me} />} />
+        <Route path="/operators" element={<OperatorsPage me={me} />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>
