@@ -13,12 +13,13 @@ import java.util.Optional;
 public class JdbcDeviceRepository implements DeviceRepository {
 
     private static final String COLUMNS =
-            "device_id, name, device_type, location, terminal_type, ip_address, port, active";
+            "device_id, name, device_type, location, store_id, terminal_type, ip_address, port, active";
     private static final RowMapper<Device> MAPPER = (rs, rowNum) -> new Device(
             rs.getString("device_id"),
             rs.getString("name"),
             rs.getString("device_type"),
             rs.getString("location"),
+            rs.getString("store_id"),
             rs.getString("terminal_type"),
             rs.getString("ip_address"),
             (Integer) rs.getObject("port"),
@@ -52,18 +53,19 @@ public class JdbcDeviceRepository implements DeviceRepository {
     @Override
     public void insert(Device device) {
         jdbcTemplate.update(
-                "INSERT INTO devices (" + COLUMNS + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                "INSERT INTO devices (" + COLUMNS + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 device.deviceId(), device.name(), device.deviceType(), device.location(),
-                device.terminalType(), device.ipAddress(), device.port(), device.active());
+                device.storeId(), device.terminalType(), device.ipAddress(), device.port(), device.active());
     }
 
     @Override
     public boolean update(Device device) {
         return jdbcTemplate.update(
-                "UPDATE devices SET name = ?, device_type = ?, location = ?, terminal_type = ?, "
-                        + "ip_address = ?, port = ?, active = ? WHERE device_id = ?",
-                device.name(), device.deviceType(), device.location(), device.terminalType(),
-                device.ipAddress(), device.port(), device.active(), device.deviceId()) > 0;
+                "UPDATE devices SET name = ?, device_type = ?, location = ?, store_id = ?, "
+                        + "terminal_type = ?, ip_address = ?, port = ?, active = ? WHERE device_id = ?",
+                device.name(), device.deviceType(), device.location(), device.storeId(),
+                device.terminalType(), device.ipAddress(), device.port(), device.active(),
+                device.deviceId()) > 0;
     }
 
     @Override

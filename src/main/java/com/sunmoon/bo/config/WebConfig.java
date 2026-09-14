@@ -21,7 +21,13 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
-        for (String route : new String[] {"/board", "/common-code", "/devices"}) {
+        // Every client route needs a line here. /menus and /stores were
+        // missing from 2026-09-10 until 2026-09-15: the screens worked when
+        // navigated to, and a refresh on either one 404'd.
+        String[] routes = {
+                "/board", "/common-code", "/devices", "/menus", "/stores",
+                "/sales", "/terminals", "/operators"};
+        for (String route : routes) {
             registry.addViewController(route).setViewName("forward:/index.html");
         }
     }

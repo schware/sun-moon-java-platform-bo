@@ -42,12 +42,14 @@ class DeviceControllerTest {
     @WithMockUser(authorities = "DEVICE_VIEW")
     void listsDevices() throws Exception {
         when(service.list(nullable(String.class)))
-                .thenReturn(List.of(new Device("kds-01", "주방 1번", "KDS", "1층", "KDS", "192.168.0.50", 80, true)));
+                .thenReturn(List.of(new Device(
+                        "kds-01", "주방 1번", "KDS", "1층", "store-01", "KDS", "192.168.0.50", 80, true)));
 
         mockMvc.perform(get("/api/devices"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].deviceId").value("kds-01"))
-                .andExpect(jsonPath("$[0].name").value("주방 1번"));
+                .andExpect(jsonPath("$[0].name").value("주방 1번"))
+                .andExpect(jsonPath("$[0].storeId").value("store-01"));
     }
 
     @Test

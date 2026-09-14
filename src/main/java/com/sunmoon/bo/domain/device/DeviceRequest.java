@@ -10,13 +10,23 @@ public record DeviceRequest(
         @NotBlank String name,
         @NotBlank String deviceType,
         String location,
+        String storeId,
         @Pattern(regexp = "POS|KDS|DID", message = "terminalType must be POS, KDS or DID") String terminalType,
         String ipAddress,
         @Min(1) @Max(65535) Integer port,
         Boolean active) {
 
     public Device toDomain() {
-        return new Device(
-                deviceId, name, deviceType, location, terminalType, ipAddress, port, active == null || active);
+        return new Device(deviceId, name, deviceType, location, blankToNull(storeId), terminalType,
+                ipAddress, port, active == null || active);
+    }
+
+    /**
+     * An empty {@code <select>} posts {@code ""}, not null. Stored as-is it
+     * would be a store id that matches no 매장 and is not null either — a
+     * third state the 단말 현황 join would have to know about.
+     */
+    private static String blankToNull(String value) {
+        return value == null || value.isBlank() ? null : value;
     }
 }

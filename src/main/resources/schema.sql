@@ -41,11 +41,18 @@ CREATE TABLE IF NOT EXISTS common_codes (
 -- connects there, null for equipment that doesn't. ip_address/port are
 -- addresses BO can dial to check "is anything answering" — not the same
 -- fact as the Device Server's own live connection registry.
+-- store_id is which 매장 the terminal stands in, added 2026-09-15 when
+-- 단말 현황 needed to line these rows up against the Device Server's
+-- registry — a terminal there is (매장, 단말기번호, 종류), because every
+-- branch has a pos-01. Nullable: equipment that never connects has no
+-- store, and rows written before this column have none to infer. Not a
+-- foreign key to stores, same reasoning as device_type.
 CREATE TABLE IF NOT EXISTS devices (
     device_id VARCHAR(64) PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     device_type VARCHAR(64) NOT NULL,
     location VARCHAR(200),
+    store_id VARCHAR(64),
     terminal_type VARCHAR(16),
     ip_address VARCHAR(45),
     port INT,
@@ -55,6 +62,7 @@ CREATE TABLE IF NOT EXISTS devices (
 ALTER TABLE devices ADD COLUMN IF NOT EXISTS terminal_type VARCHAR(16);
 ALTER TABLE devices ADD COLUMN IF NOT EXISTS ip_address VARCHAR(45);
 ALTER TABLE devices ADD COLUMN IF NOT EXISTS port INT;
+ALTER TABLE devices ADD COLUMN IF NOT EXISTS store_id VARCHAR(64);
 
 -- 공지사항. author is the operator username as it was at posting time,
 -- not a foreign key: a notice should stay readable after its author's
