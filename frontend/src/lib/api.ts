@@ -87,6 +87,10 @@ export interface SalesSummary {
   salesAmount: number
 }
 
+/**
+ * 한 건의 주문. 매출 조회의 펼침과 APP 매출 조회가 같이 씁니다 — 서버가
+ * 주는 것이 하나라서, 화면마다 다르게 부르지 않습니다.
+ */
 export interface SalesOrder {
   id: number
   storeId: string
@@ -95,6 +99,19 @@ export interface SalesOrder {
   amount: number
   status: string
   acceptedBy: string | null
+  /**
+   * 도착지 — "이 메뉴를 저 자리로". 테이블 QR로 들어온 주문에만 있고,
+   * 매장 선택 화면이나 포장·배달은 null 입니다. null 이 "모른다"가
+   * 아니라 "테이블이 아니다"라는 뜻입니다.
+   */
+  floor: number | null
+  tableNo: string | null
+  /** 부르는 번호. DID에 뜨고 손님이 보고 온 값입니다. */
+  pickupNo: string | null
+  /** 이 주문이 들어온 테이블 QR의 코드. 자리 번호를 바꿔도 그대로입니다. */
+  qrCode: string | null
+  /** 거래번호 — 매출 키의 마지막 자리. 수락 전에는 null 입니다. */
+  tranNo: string | null
   businessDate: string
   placedAt: string
   updatedAt: string

@@ -64,7 +64,7 @@ public class SecurityConfig {
                         // (WebConfig); the screens behind them still fetch an
                         // API that checks the session and the permission.
                         .requestMatchers("/board", "/common-code", "/devices", "/menus", "/stores",
-                                "/sales", "/terminals", "/operators", "/tables", "/sold-out").permitAll()
+                                "/sales", "/app-sales", "/terminals", "/operators", "/tables", "/sold-out").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .anyRequest().authenticated())
                 .formLogin(form -> form

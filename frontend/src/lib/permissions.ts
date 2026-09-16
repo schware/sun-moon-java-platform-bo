@@ -11,11 +11,18 @@ import type { Me } from './api'
  */
 
 export const SCREENS = [
-  'BOARD', 'COMMON_CODE', 'DEVICE', 'MENU', 'SOLD_OUT', 'STORE', 'TABLE', 'SALES', 'TERMINAL', 'OPERATOR'
+  'BOARD', 'COMMON_CODE', 'DEVICE', 'MENU', 'SOLD_OUT', 'STORE', 'TABLE',
+  'SALES', 'APP_SALES', 'TERMINAL', 'OPERATOR'
 ] as const
 export type Screen = (typeof SCREENS)[number]
 
-/** For the 운영자 permission matrix, which otherwise shows enum names. */
+/**
+ * For the 운영자 permission matrix, which otherwise shows enum names.
+ *
+ * 매출 조회가 둘이라 여기서는 앞에 POS/APP를 붙입니다 — 행렬에는 묶음
+ * 머리글이 없어서 이름만으로 갈려야 합니다. 왼쪽 트리에서는 묶음이
+ * 이미 말해주므로 그냥 "매출 조회"입니다 (MENU 의 label).
+ */
 export const SCREEN_LABEL: Record<Screen, string> = {
   BOARD: '공지사항',
   COMMON_CODE: '공통코드',
@@ -24,7 +31,8 @@ export const SCREEN_LABEL: Record<Screen, string> = {
   SOLD_OUT: '결품',
   STORE: '매장',
   TABLE: '매장 배치도',
-  SALES: '매출 조회',
+  SALES: 'POS 매출 조회',
+  APP_SALES: 'APP 매출 조회',
   TERMINAL: '단말 현황',
   OPERATOR: '운영자'
 }
@@ -35,7 +43,7 @@ export const SCREEN_LABEL: Record<Screen, string> = {
  * matrix greys the other three columns rather than offering permissions
  * that could only ever be inert.
  */
-export const VIEW_ONLY_SCREENS: readonly Screen[] = ['SALES', 'TERMINAL']
+export const VIEW_ONLY_SCREENS: readonly Screen[] = ['SALES', 'APP_SALES', 'TERMINAL']
 
 /**
  * 화면마다 실제로 뜻이 있는 행위. 안 적힌 화면은 네 가지 모두입니다.
@@ -46,6 +54,7 @@ export const VIEW_ONLY_SCREENS: readonly Screen[] = ['SALES', 'TERMINAL']
  */
 export const SCREEN_ACTIONS: Partial<Record<Screen, readonly Action[]>> = {
   SALES: ['VIEW'],
+  APP_SALES: ['VIEW'],
   TERMINAL: ['VIEW'],
   SOLD_OUT: ['VIEW', 'CREATE', 'DELETE']
 }
@@ -77,11 +86,13 @@ export function canSeeScreen(me: Me, screen: Screen): boolean {
  * 쓰는가**입니다 — 이 계열이 이미 그렇게 갈려 있기 때문입니다
  * (umbrella docs/adr/0008: 제어면은 BO, 실행면은 POS 쪽과 APP 쪽).
  *
- * - `MASTER`  기준정보. 양쪽이 다 읽는 것들.
- * - `POS`     매장·단말 쪽. 결품이 여기 있는 이유는 사장님 말씀 그대로
- *             입니다 — "BO에서 결품을 하면 그것을 POS가 가져가는 것".
- * - `APP`     손님 쪽 창구(APP-SERVER)가 읽는 것들. 지금은 테이블 QR
- *             하나뿐이고, App·주문 QR 마스터가 여기로 들어옵니다.
+ * - `MASTER`  기준정보. 양쪽이 다 읽는 것들. 결품이 여기 있는 것은
+ *             POS도 손님 화면도 같은 값을 읽기 때문입니다 — 거는 곳은
+ *             하나고, 읽는 곳이 둘입니다.
+ * - `POS`     매장·단말 쪽. 단말과 그 단말이 만든 매출.
+ * - `APP`     손님 쪽 창구(APP-SERVER)의 것들. 테이블 QR을 만들고,
+ *             그 QR과 앱으로 들어온 주문을 되짚어 봅니다. App·주문 QR
+ *             마스터가 여기로 들어옵니다.
  * - `SYSTEM`  BO 자신을 운영하는 것들.
  */
 export const GROUPS = ['MASTER', 'POS', 'APP', 'SYSTEM'] as const
@@ -105,14 +116,15 @@ export interface MenuItem {
 export const MENU: MenuItem[] = [
   { group: 'MASTER', screen: 'STORE', path: '/stores', label: SCREEN_LABEL.STORE },
   { group: 'MASTER', screen: 'MENU', path: '/menus', label: SCREEN_LABEL.MENU },
+  { group: 'MASTER', screen: 'SOLD_OUT', path: '/sold-out', label: SCREEN_LABEL.SOLD_OUT },
   { group: 'MASTER', screen: 'COMMON_CODE', path: '/common-code', label: SCREEN_LABEL.COMMON_CODE },
 
-  { group: 'POS', screen: 'SOLD_OUT', path: '/sold-out', label: SCREEN_LABEL.SOLD_OUT },
   { group: 'POS', screen: 'DEVICE', path: '/devices', label: SCREEN_LABEL.DEVICE },
   { group: 'POS', screen: 'TERMINAL', path: '/terminals', label: SCREEN_LABEL.TERMINAL },
-  { group: 'POS', screen: 'SALES', path: '/sales', label: SCREEN_LABEL.SALES },
+  { group: 'POS', screen: 'SALES', path: '/sales', label: '매출 조회' },
 
   { group: 'APP', screen: 'TABLE', path: '/tables', label: SCREEN_LABEL.TABLE },
+  { group: 'APP', screen: 'APP_SALES', path: '/app-sales', label: '매출 조회' },
 
   { group: 'SYSTEM', screen: 'BOARD', path: '/board', label: SCREEN_LABEL.BOARD },
   { group: 'SYSTEM', screen: 'OPERATOR', path: '/operators', label: SCREEN_LABEL.OPERATOR }

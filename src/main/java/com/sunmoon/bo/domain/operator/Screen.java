@@ -20,6 +20,14 @@ public enum Screen {
     TABLE,
     /** 매출 조회. VIEW only — BO has no endpoint that writes 매출, by design. */
     SALES,
+    /**
+     * APP 매출 조회 — 테이블 QR과 손님 앱으로 들어온 주문을 <b>어디서
+     * 와서 어디로 갔는가</b>로 보는 화면. SALES와 따로인 이유는 묻는
+     * 질문이 다르기 때문입니다: 저쪽은 하루에 얼마를 팔았나이고, 이쪽은
+     * 그 주문이 몇 번 자리로 갔고 수령번호가 무엇이었나입니다.
+     * VIEW only — 여기도 쓰는 endpoint가 없습니다.
+     */
+    APP_SALES,
     /** 단말 현황. VIEW only — the connections belong to the Device Server. */
     TERMINAL,
     OPERATOR
