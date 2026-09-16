@@ -69,22 +69,51 @@ export function canSeeScreen(me: Me, screen: Screen): boolean {
   return ACTIONS.some((action) => can(me, screen, action))
 }
 
+/**
+ * 화면이 속한 묶음.
+ *
+ * 열 개가 한 줄로 늘어서 있으면 "지금 고치려는 게 어디에 있더라"를 매번
+ * 다시 찾습니다. 나누는 기준은 화면의 종류가 아니라 **누가 그 값을
+ * 쓰는가**입니다 — 이 계열이 이미 그렇게 갈려 있기 때문입니다
+ * (umbrella docs/adr/0008: 제어면은 BO, 실행면은 POS 쪽과 APP 쪽).
+ *
+ * - `MASTER`  기준정보. 양쪽이 다 읽는 것들.
+ * - `POS`     매장·단말 쪽. 결품이 여기 있는 이유는 사장님 말씀 그대로
+ *             입니다 — "BO에서 결품을 하면 그것을 POS가 가져가는 것".
+ * - `APP`     손님 쪽 창구(APP-SERVER)가 읽는 것들. 지금은 테이블 QR
+ *             하나뿐이고, App·주문 QR 마스터가 여기로 들어옵니다.
+ * - `SYSTEM`  BO 자신을 운영하는 것들.
+ */
+export const GROUPS = ['MASTER', 'POS', 'APP', 'SYSTEM'] as const
+export type Group = (typeof GROUPS)[number]
+
+export const GROUP_LABEL: Record<Group, string> = {
+  MASTER: '기준정보',
+  POS: 'POS',
+  APP: 'APP',
+  SYSTEM: '시스템'
+}
+
 export interface MenuItem {
   screen: Screen
   path: string
   label: string
+  group: Group
 }
 
 /** Every screen now has a page behind it — OPERATOR was the last one without endpoints. */
 export const MENU: MenuItem[] = [
-  { screen: 'BOARD', path: '/board', label: SCREEN_LABEL.BOARD },
-  { screen: 'COMMON_CODE', path: '/common-code', label: SCREEN_LABEL.COMMON_CODE },
-  { screen: 'STORE', path: '/stores', label: SCREEN_LABEL.STORE },
-  { screen: 'TABLE', path: '/tables', label: SCREEN_LABEL.TABLE },
-  { screen: 'MENU', path: '/menus', label: SCREEN_LABEL.MENU },
-  { screen: 'SOLD_OUT', path: '/sold-out', label: SCREEN_LABEL.SOLD_OUT },
-  { screen: 'DEVICE', path: '/devices', label: SCREEN_LABEL.DEVICE },
-  { screen: 'TERMINAL', path: '/terminals', label: SCREEN_LABEL.TERMINAL },
-  { screen: 'SALES', path: '/sales', label: SCREEN_LABEL.SALES },
-  { screen: 'OPERATOR', path: '/operators', label: SCREEN_LABEL.OPERATOR }
+  { group: 'MASTER', screen: 'STORE', path: '/stores', label: SCREEN_LABEL.STORE },
+  { group: 'MASTER', screen: 'MENU', path: '/menus', label: SCREEN_LABEL.MENU },
+  { group: 'MASTER', screen: 'COMMON_CODE', path: '/common-code', label: SCREEN_LABEL.COMMON_CODE },
+
+  { group: 'POS', screen: 'SOLD_OUT', path: '/sold-out', label: SCREEN_LABEL.SOLD_OUT },
+  { group: 'POS', screen: 'DEVICE', path: '/devices', label: SCREEN_LABEL.DEVICE },
+  { group: 'POS', screen: 'TERMINAL', path: '/terminals', label: SCREEN_LABEL.TERMINAL },
+  { group: 'POS', screen: 'SALES', path: '/sales', label: SCREEN_LABEL.SALES },
+
+  { group: 'APP', screen: 'TABLE', path: '/tables', label: SCREEN_LABEL.TABLE },
+
+  { group: 'SYSTEM', screen: 'BOARD', path: '/board', label: SCREEN_LABEL.BOARD },
+  { group: 'SYSTEM', screen: 'OPERATOR', path: '/operators', label: SCREEN_LABEL.OPERATOR }
 ]
