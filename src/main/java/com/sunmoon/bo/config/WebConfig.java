@@ -26,7 +26,7 @@ public class WebConfig implements WebMvcConfigurer {
         // navigated to, and a refresh on either one 404'd.
         String[] routes = {
                 "/board", "/common-code", "/devices", "/menus", "/stores",
-                "/sales", "/terminals", "/operators"};
+                "/sales", "/terminals", "/operators", "/tables"};
         for (String route : routes) {
             registry.addViewController(route).setViewName("forward:/index.html");
         }

@@ -10,6 +10,8 @@ public enum Screen {
     DEVICE,
     MENU,
     STORE,
+    /** 매장 배치도 — 테이블 기준 정보와 QR. */
+    TABLE,
     /** 매출 조회. VIEW only — BO has no endpoint that writes 매출, by design. */
     SALES,
     /** 단말 현황. VIEW only — the connections belong to the Device Server. */

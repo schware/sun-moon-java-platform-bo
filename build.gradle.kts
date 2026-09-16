@@ -35,6 +35,11 @@ dependencies {
     // for hand-rolling them (see the umbrella repo's ADR-0004).
     implementation("org.springframework.boot:spring-boot-starter-security")
 
+    // 테이블 QR 이미지를 서버에서 그립니다. 인쇄가 목적이라 파일로 저장할
+    // 이유가 없고(요청마다 그리면 됩니다), 이 계열에 파일 저장소도 없습니다.
+    implementation("com.google.zxing:core:3.5.3")
+    implementation("com.google.zxing:javase:3.5.3")
+
     implementation("io.micrometer:micrometer-registry-prometheus")
 
     // Pinned to 2.6.0 for the same reason the sibling services pin it:

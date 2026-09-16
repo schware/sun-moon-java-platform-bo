@@ -138,6 +138,23 @@ export interface Store {
   active: boolean
 }
 
+/**
+ * 매장의 테이블 한 자리 — 배송지입니다(ADR-0007). qrCode는 서버가 발급하고
+ * 절대 바뀌지 않습니다: 이미 인쇄해서 붙인 스티커가 계속 이 테이블을
+ * 가리켜야 하기 때문입니다. 그래서 수정 폼에도 없습니다.
+ */
+export interface StoreTable {
+  id: number | null
+  storeId: string
+  floor: number
+  tableNo: string
+  displayName: string | null
+  posX: number | null
+  posY: number | null
+  qrCode: string
+  active: boolean
+}
+
 export interface Menu {
   menuCode: string
   name: string

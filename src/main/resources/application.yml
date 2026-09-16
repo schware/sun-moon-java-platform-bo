@@ -45,3 +45,13 @@ bo:
     base-url: ${ORDER_SERVICE_URL:http://localhost:8083/order}
   device-server:
     base-url: ${DEVICE_SERVER_URL:http://localhost:8087}
+  # 테이블 QR이 담을 주소의 앞부분. 뒤에 테이블의 코드가 붙습니다.
+  #
+  # **손님 휴대폰이 LTE로 여는 주소여야 합니다.** 여기에 192.168.x 를 넣고
+  # 인쇄하면 매장에서만 열리고, 스티커는 회수가 안 됩니다. 인쇄 전에
+  # /api/tables/{id}/qr-target 으로 눈으로 확인하세요.
+  #
+  # 도메인이 생기면 그때 바꿉니다 — 공인 IP는 언젠가 바뀌고, 그날 붙여둔
+  # QR이 전부 죽습니다.
+  qr:
+    table-base-url: ${QR_TABLE_BASE_URL:http://211.217.183.232:8085/channel-order/t/}

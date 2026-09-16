@@ -11,7 +11,7 @@ import type { Me } from './api'
  */
 
 export const SCREENS = [
-  'BOARD', 'COMMON_CODE', 'DEVICE', 'MENU', 'STORE', 'SALES', 'TERMINAL', 'OPERATOR'
+  'BOARD', 'COMMON_CODE', 'DEVICE', 'MENU', 'STORE', 'TABLE', 'SALES', 'TERMINAL', 'OPERATOR'
 ] as const
 export type Screen = (typeof SCREENS)[number]
 
@@ -22,6 +22,7 @@ export const SCREEN_LABEL: Record<Screen, string> = {
   DEVICE: '장비',
   MENU: '메뉴',
   STORE: '매장',
+  TABLE: '매장 배치도',
   SALES: '매출 조회',
   TERMINAL: '단말 현황',
   OPERATOR: '운영자'
@@ -59,6 +60,7 @@ export const MENU: MenuItem[] = [
   { screen: 'BOARD', path: '/board', label: SCREEN_LABEL.BOARD },
   { screen: 'COMMON_CODE', path: '/common-code', label: SCREEN_LABEL.COMMON_CODE },
   { screen: 'STORE', path: '/stores', label: SCREEN_LABEL.STORE },
+  { screen: 'TABLE', path: '/tables', label: SCREEN_LABEL.TABLE },
   { screen: 'MENU', path: '/menus', label: SCREEN_LABEL.MENU },
   { screen: 'DEVICE', path: '/devices', label: SCREEN_LABEL.DEVICE },
   { screen: 'TERMINAL', path: '/terminals', label: SCREEN_LABEL.TERMINAL },
