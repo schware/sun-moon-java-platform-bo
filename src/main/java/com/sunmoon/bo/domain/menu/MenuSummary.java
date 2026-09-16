@@ -9,5 +9,6 @@ import java.math.BigDecimal;
  */
 public record MenuSummary(
         String menuCode, String name, String imageUrl, String description, String kdsDeviceId, boolean active,
+        Integer cookMinutes,
         BigDecimal currentPrice) {
 }

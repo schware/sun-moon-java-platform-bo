@@ -162,10 +162,32 @@ export interface Menu {
   description: string | null
   kdsDeviceId: string | null
   active: boolean
+  /**
+   * 기준 조리시간(분). 실측 평균이 아니라 운영자가 정하는 값이고,
+   * 예상 대기시간을 "기준 조리시간 x 대기열"로 뽑을 때 앞의 항입니다.
+   * null은 "아직 안 정했다"이며 0으로 읽으면 안 됩니다.
+   */
+  cookMinutes: number | null
 }
 
 export interface MenuSummary extends Menu {
   currentPrice: number | null
+}
+
+/** 결품 화면 한 줄 — 메뉴판 전체에 오늘 결품 표시를 단 것. */
+export interface SoldOutRow {
+  menuCode: string
+  name: string
+  active: boolean
+  currentPrice: number | null
+  cookMinutes: number | null
+  soldOut: boolean
+}
+
+export interface SoldOutBoard {
+  storeId: string
+  businessDate: string
+  menus: SoldOutRow[]
 }
 
 export interface MenuPrice {

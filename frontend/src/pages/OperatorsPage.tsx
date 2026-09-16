@@ -3,7 +3,7 @@ import {
   apiGet, apiWrite,
   type Me, type Operator, type OperatorRequest, type ScreenPermission
 } from '../lib/api'
-import { ACTIONS, SCREENS, SCREEN_LABEL, VIEW_ONLY_SCREENS, can, type Action, type Screen } from '../lib/permissions'
+import { ACTIONS, SCREENS, SCREEN_LABEL, actionApplies, can, type Action, type Screen } from '../lib/permissions'
 
 /**
  * 운영자 관리 — the screen that finally makes the three permission tiers
@@ -215,15 +215,15 @@ export default function OperatorsPage({ me }: { me: Me }) {
                   <tbody>
                     {form.permissions.map((permission) => {
                       const screen = permission.screen as Screen
-                      const viewOnly = VIEW_ONLY_SCREENS.includes(screen)
                       return (
                         <tr key={screen}>
                           <td>{SCREEN_LABEL[screen] ?? screen}</td>
                           {ACTIONS.map((action) => {
-                            // 매출 조회와 단말 현황에는 쓰기 엔드포인트가
-                            // 아예 없습니다 — 체크할 수 있게 두면 아무 일도
-                            // 하지 않는 권한을 주게 됩니다.
-                            const dead = viewOnly && action !== 'VIEW'
+                            // 화면에 없는 행위는 체크할 수 있게 두면
+                            // 아무 일도 하지 않는 권한을 주게 됩니다 —
+                            // 매출 조회/단말 현황에는 쓰기 엔드포인트가
+                            // 아예 없고, 결품에는 저장이 없습니다.
+                            const dead = !actionApplies(screen, action)
                             return (
                               <td key={action}>
                                 <input type="checkbox" disabled={dead}

@@ -20,6 +20,10 @@ spring:
   sql:
     init:
       mode: always
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
 
 management:
   endpoints:
@@ -55,3 +59,9 @@ bo:
   # QR이 전부 죽습니다.
   qr:
     table-base-url: ${QR_TABLE_BASE_URL:http://211.217.183.232:8085/channel-order/t/}
+  events:
+    # 결품을 menu-events 채널로 흘릴지. false 면 로그만 남기고, BO는
+    # Redis 없는 기기에서도 그대로 뜹니다 — Order의 EVENTS_REDIS와
+    # 같은 모양입니다. 서버에서는 반드시 true 로 띄우세요: false 면
+    # 결품이 DB에는 들어가고 단말에는 바로 안 보입니다(다음 조회까지).
+    redis: ${BO_EVENTS_REDIS:false}

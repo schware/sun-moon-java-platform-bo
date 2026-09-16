@@ -163,3 +163,37 @@ CREATE INDEX IF NOT EXISTS idx_store_tables_store ON store_tables (store_id, flo
 -- 격자 한 칸이 실제로 몇 cm인지. 로봇이 좌표를 쓸 때 필요해집니다.
 -- 매장마다 다를 수 있어서 매장에 답니다. null이면 "아직 안 쟀다"입니다.
 ALTER TABLE stores ADD COLUMN IF NOT EXISTS grid_scale_cm INT;
+
+-- 기준 조리시간 (분). 예상 대기시간을 "기준 조리시간 × 대기열 길이"로
+-- 계산할 때 쓰는 쪽의 값입니다 — 실측 평균이 아니라 **운영자가 정하는
+-- 기준값**입니다. null이면 아직 안 정한 것이고, 그 메뉴는 예상시간
+-- 계산에서 빠집니다 (0으로 치지 않습니다 — 0분은 "즉시 나온다"는
+-- 거짓말이고, 모름은 모름으로 두는 편이 낫습니다).
+ALTER TABLE menus ADD COLUMN IF NOT EXISTS cook_minutes INT;
+
+-- 결품 (품절).
+--
+-- 키에 판매일자가 들어가는 이유: 결품은 **오늘 없다**는 뜻이지 메뉴를
+-- 내리는 것이 아닙니다. 판매일자를 키에 넣으면 개점과 함께 저절로
+-- 풀립니다 — 자정에 도는 배치도, 마감 때 지우는 절차도 필요 없습니다.
+-- 어제 걸어둔 결품이 오늘 아침 손님 화면에 남아 있는 사고가 구조적으로
+-- 안 생깁니다.
+--
+-- BO는 영업일자를 모릅니다 (그건 Order의 것입니다). 그래서 이 표는
+-- 날짜를 **받아서** 저장하고, 읽는 쪽이 자기 판매일자를 들고 물어봅니다.
+-- BO 화면의 기본값만 Asia/Seoul 오늘입니다.
+--
+-- 행이 있으면 결품입니다. 풀면 지웁니다 — sold_out=false 행을 남기면
+-- "안 정했다"와 "판매한다"가 같은 모양이 되고, 그 구분은 아무도
+-- 쓰지 않습니다.
+CREATE TABLE IF NOT EXISTS menu_sold_out (
+    store_id VARCHAR(64) NOT NULL,
+    menu_code VARCHAR(64) NOT NULL REFERENCES menus(menu_code),
+    business_date DATE NOT NULL,
+    declared_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    declared_by VARCHAR(64),
+    PRIMARY KEY (store_id, menu_code, business_date)
+);
+
+CREATE INDEX IF NOT EXISTS idx_menu_sold_out_lookup
+    ON menu_sold_out (store_id, business_date);

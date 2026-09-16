@@ -29,6 +29,12 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-jdbc")
     runtimeOnly("org.postgresql:postgresql")
 
+    // 결품을 단말에 알리는 길 (menu-events). BO가 단말을 직접 부르지
+    // 않는 이유는 Order가 그러지 않는 이유와 같습니다 — 누가 접속해
+    // 있는지는 Device Server만 압니다. bo.events.redis=false 면 이
+    // starter가 있어도 아무 데도 붙지 않습니다.
+    implementation("org.springframework.boot:spring-boot-starter-data-redis")
+
     // The reason BO is a Spring service at all: session auth, BCrypt and
     // per-action authorization are what this starter is for, and BO is
     // administration - it has no throughput requirement that would argue

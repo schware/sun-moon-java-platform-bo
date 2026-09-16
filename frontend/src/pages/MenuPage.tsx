@@ -4,7 +4,10 @@ import { can } from '../lib/permissions'
 
 type Editing = { mode: 'none' } | { mode: 'new' } | { mode: 'edit' }
 
-const BLANK: Menu = { menuCode: '', name: '', imageUrl: '', description: '', kdsDeviceId: '', active: true }
+const BLANK: Menu = {
+  menuCode: '', name: '', imageUrl: '', description: '', kdsDeviceId: '', active: true,
+  cookMinutes: null
+}
 const BLANK_PRICE = { price: '', startDate: '', endDate: '' }
 
 function formatPrice(amount: number | null): string {
@@ -207,6 +210,19 @@ export default function MenuPage({ me }: { me: Me }) {
             </p>
           </div>
           <div className="field">
+            <label htmlFor="cookMinutes">기준 조리시간 (분)</label>
+            <input id="cookMinutes" type="number" min={1} value={form.cookMinutes ?? ''}
+                   onChange={(e) => setForm({
+                     ...form,
+                     cookMinutes: e.target.value === '' ? null : Number(e.target.value)
+                   })} />
+            <p className="muted" style={{ margin: '4px 0 0' }}>
+              손님 화면의 예상 대기시간을 "기준 조리시간 &times; 대기열"로 뽑습니다. 실측 평균이
+              아니라 운영자가 정하는 값이고, 비워두면 그 메뉴는 예상시간을 안 보여줍니다 —
+              0분이라고 말하는 것보다 모른다고 두는 편이 낫습니다.
+            </p>
+          </div>
+          <div className="field">
             <label htmlFor="active">사용여부</label>
             <select id="active" value={form.active ? 'Y' : 'N'}
                     onChange={(e) => setForm({ ...form, active: e.target.value === 'Y' })}>
@@ -230,7 +246,7 @@ export default function MenuPage({ me }: { me: Me }) {
           <div className="table-wrap">
             <table>
               <thead>
-                <tr><th>메뉴코드</th><th>이름</th><th>오늘의 가격</th><th>사용</th><th /></tr>
+                <tr><th>메뉴코드</th><th>이름</th><th>오늘의 가격</th><th className="num">조리시간</th><th>사용</th><th /></tr>
               </thead>
               <tbody>
                 {rows.map((row) => (
@@ -240,6 +256,7 @@ export default function MenuPage({ me }: { me: Me }) {
                     </td>
                     <td className="clickable" onClick={() => select(row.menuCode)}>{row.name}</td>
                     <td className="muted">{formatPrice(row.currentPrice)}</td>
+                    <td className="num muted">{row.cookMinutes === null ? '' : `${row.cookMinutes}분`}</td>
                     <td>{row.active ? <span className="badge on">사용</span> : <span className="badge off">미사용</span>}</td>
                     <td className="actions">
                       <div className="row" style={{ justifyContent: 'flex-end' }}>

@@ -46,7 +46,7 @@ class MenuControllerTest {
     @WithMockUser(authorities = "MENU_VIEW")
     void listsMenusWithTodaysPrice() throws Exception {
         when(service.list()).thenReturn(List.of(
-                new MenuSummary("menu-01", "1메뉴", null, null, null, true, new BigDecimal("6000"))));
+                new MenuSummary("menu-01", "1메뉴", null, null, null, true, 8, new BigDecimal("6000"))));
 
         mockMvc.perform(get("/api/menus"))
                 .andExpect(status().isOk())

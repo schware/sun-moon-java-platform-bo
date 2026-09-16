@@ -8,9 +8,12 @@ public record MenuRequest(
         String imageUrl,
         String description,
         String kdsDeviceId,
-        Boolean active) {
+        Boolean active,
+        @jakarta.validation.constraints.Positive(message = "기준 조리시간은 1분 이상이어야 합니다")
+        Integer cookMinutes) {
 
     public Menu toDomain() {
-        return new Menu(menuCode, name, imageUrl, description, kdsDeviceId, active == null || active);
+        return new Menu(menuCode, name, imageUrl, description, kdsDeviceId, active == null || active,
+                cookMinutes);
     }
 }

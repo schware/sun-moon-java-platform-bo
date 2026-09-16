@@ -9,6 +9,12 @@ public enum Screen {
     COMMON_CODE,
     DEVICE,
     MENU,
+    /**
+     * 결품 — 오늘 이 매장에 없는 메뉴. MENU와 따로 둡니다: 저쪽은 기준
+     * 정보를 고치는 드문 일이고 이쪽은 장사 중에 몇 번씩 누르는 일이라,
+     * 홀 담당에게 이것만 열어줄 수 있어야 합니다.
+     */
+    SOLD_OUT,
     STORE,
     /** 매장 배치도 — 테이블 기준 정보와 QR. */
     TABLE,
