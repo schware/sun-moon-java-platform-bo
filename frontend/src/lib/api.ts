@@ -112,6 +112,18 @@ export interface SalesOrder {
   qrCode: string | null
   /** 거래번호 — 매출 키의 마지막 자리. 수락 전에는 null 입니다. */
   tranNo: string | null
+  /** 어느 단말이 내줬나. 2026-09-17 이전 주문에는 없습니다. */
+  pickupBy: string | null
+  pickupAt: string | null
+  /**
+   * 수령번호를 확인하지 않고 내준 건인가.
+   *
+   * 기록만 하고 볼 곳이 없으면 기록하지 않은 것과 같아서 이 화면까지
+   * 끌고 옵니다. 늘어나면 둘 중 하나입니다 — 손님이 정말 번호를 못
+   * 대거나(보여주는 방식을 고쳐야 합니다), 매장이 묻기를 그만뒀거나
+   * (그러면 수령번호가 이미 장식입니다).
+   */
+  pickupOverride: boolean
   businessDate: string
   placedAt: string
   updatedAt: string

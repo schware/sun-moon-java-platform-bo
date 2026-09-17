@@ -39,6 +39,23 @@ public record SalesOrder(
         String qrCode,
         /** 거래번호 — 매출 키의 마지막 자리. 수락 전에는 null 입니다. */
         String tranNo,
+        /**
+         * 누가 내줬나, 언제, 그리고 <b>번호를 확인했나</b>.
+         *
+         * <p>{@code pickupOverride} 가 참이면 수령번호를 맞춰 보지 않고
+         * 내준 건입니다. 그런 길을 열어 둔 이유는 번호를 못 대는 손님이
+         * 실제로 있기 때문이고, 그 사실을 여기까지 끌고 오는 이유는
+         * <b>기록만 하고 볼 곳이 없으면 기록하지 않은 것과 같기</b>
+         * 때문입니다.
+         *
+         * <p>이 숫자가 늘면 둘 중 하나입니다 — 손님들이 번호를 정말 못
+         * 대고 있거나(그러면 번호를 보여주는 방식을 고쳐야 합니다),
+         * 매장이 묻기를 그만뒀거나(그러면 수령번호가 이미 장식입니다).
+         * 어느 쪽이든 알아야 할 일입니다.
+         */
+        String pickupBy,
+        Instant pickupAt,
+        boolean pickupOverride,
         LocalDate businessDate,
         Instant placedAt,
         Instant updatedAt) {
@@ -46,5 +63,10 @@ public record SalesOrder(
     /** 테이블 QR로 들어온 주문인가. 아니면 매장 선택 화면에서 온 것입니다. */
     public boolean fromTable() {
         return tableNo != null;
+    }
+
+    /** 번호를 확인하지 않고 내준 건인가. */
+    public boolean handedOverWithoutCheck() {
+        return pickupOverride;
     }
 }

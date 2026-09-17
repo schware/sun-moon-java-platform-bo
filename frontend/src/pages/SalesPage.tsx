@@ -207,6 +207,7 @@ export default function SalesPage({ me }: { me: Me }) {
                                     <tr>
                                       <th>주문번호</th><th>고객</th><th>메뉴</th>
                                       <th className="num">금액</th><th>상태</th><th>수락 단말</th>
+                                      <th>수령</th>
                                     </tr>
                                   </thead>
                                   <tbody>
@@ -218,6 +219,24 @@ export default function SalesPage({ me }: { me: Me }) {
                                         <td className="num">{MONEY.format(order.amount)}</td>
                                         <td>{STATUS_LABEL[order.status] ?? order.status}</td>
                                         <td className="muted">{order.acceptedBy ?? ''}</td>
+                                        {/*
+                                          번호를 확인하고 내줬는가.
+
+                                          기록만 하고 볼 곳이 없으면 기록하지
+                                          않은 것과 같아서 여기까지 끌고
+                                          옵니다. 정상 수령은 조용합니다 —
+                                          모든 줄에 초록 배지를 달면 정작
+                                          봐야 할 노란 줄이 안 보입니다.
+                                        */}
+                                        <td>
+                                          {order.pickupOverride ? (
+                                            <span className="badge warn" title={order.pickupBy ?? ''}>
+                                              번호 확인 없음
+                                            </span>
+                                          ) : order.pickupBy ? (
+                                            <span className="muted">{order.pickupBy}</span>
+                                          ) : ''}
+                                        </td>
                                       </tr>
                                     ))}
                                   </tbody>
