@@ -197,3 +197,81 @@ CREATE TABLE IF NOT EXISTS menu_sold_out (
 
 CREATE INDEX IF NOT EXISTS idx_menu_sold_out_lookup
     ON menu_sold_out (store_id, business_date);
+
+-- ---------------------------------------------------------------------
+-- 기준정보 — 공통 CRUD가 다루는 표들 (업무 정의서 §6.2, umbrella adr/0014)
+--
+-- 이 표들에는 자바 클래스도 controller 도 화면도 없습니다. MasterCatalog
+-- 의 정의 한 줄이 전부이고, 그래서 표를 하나 더 붙이는 일이 여기와
+-- 거기 두 곳을 고치는 일입니다.
+--
+-- 반대로 **여기 있는 것이 전부 공통 CRUD 대상은 아닙니다.** 위의
+-- stores/menus/devices 는 손으로 만든 화면이 따로 있고, 그 화면들은
+-- 표가 아니라 업무를 그립니다 — 메뉴에는 가격 이력이, 장비에는 접속
+-- 확인이, 테이블에는 QR이 붙어 있습니다.
+-- ---------------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS companies (
+    company_code VARCHAR(32) PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    biz_no VARCHAR(32),
+    ceo_name VARCHAR(50),
+    phone VARCHAR(32),
+    address VARCHAR(200),
+    active BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+CREATE TABLE IF NOT EXISTS brands (
+    brand_code VARCHAR(32) PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    -- 회사 코드를 외래키로 묶지 않습니다. common_codes 와 같은 이유로,
+    -- 회사 행 하나가 지워졌다고 브랜드를 못 읽게 되면 안 됩니다 —
+    -- 지우기는 공통 CRUD가 참조 위반으로 막아 줍니다.
+    company_code VARCHAR(32),
+    note TEXT,
+    active BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+CREATE TABLE IF NOT EXISTS vendors (
+    vendor_code VARCHAR(32) PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    -- 공통코드 VENDOR_TYPE 의 값입니다 (매입처/물류/외주처…).
+    vendor_type VARCHAR(32),
+    biz_no VARCHAR(32),
+    phone VARCHAR(32),
+    address VARCHAR(200),
+    active BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+CREATE TABLE IF NOT EXISTS card_issuers (
+    issuer_code VARCHAR(32) PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    -- 수수료율은 숫자입니다. 글자로 두면 "2.3%" 처럼 단위가 섞여
+    -- 들어오고, 정산에서 그걸 다시 파싱하게 됩니다.
+    fee_rate NUMERIC(6,3),
+    settle_cycle_days INT,
+    active BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+-- 누가 무엇을 어떻게 바꿨나 (§6.2 "접속과 변경 로그").
+--
+-- 공통 CRUD의 가장 큰 값어치가 이 표입니다. 화면을 손으로 마흔 벌
+-- 만들면 이력도 마흔 벌 붙여야 하고, 그중 몇 개는 반드시 빠집니다.
+-- 한 곳을 지나가면 한 번만 쓰면 됩니다.
+--
+-- **바꾸기 전 값을 함께 적습니다.** 바뀐 값만 남기면 "무엇이 어떻게
+-- 달라졌나"에 답할 수 없고, 되돌릴 근거도 없습니다. 지운 행은 더
+-- 분명합니다 — 값을 안 남기면 무엇이 있었는지 아무도 모릅니다.
+CREATE TABLE IF NOT EXISTS master_audit (
+    id BIGSERIAL PRIMARY KEY,
+    master_code VARCHAR(64) NOT NULL,
+    row_id VARCHAR(128) NOT NULL,
+    action VARCHAR(16) NOT NULL,
+    before_value JSONB,
+    after_value JSONB,
+    actor VARCHAR(64),
+    changed_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_master_audit_row
+    ON master_audit (master_code, row_id, id DESC);

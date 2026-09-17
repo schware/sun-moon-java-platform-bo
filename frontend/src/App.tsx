@@ -18,6 +18,7 @@ import PosBusinessPage from './pages/PosBusinessPage'
 import PosLivePage from './pages/PosLivePage'
 import PosDeployPage from './pages/PosDeployPage'
 import PosNoticePage from './pages/PosNoticePage'
+import MasterPage from './pages/MasterPage'
 import OperatorsPage from './pages/OperatorsPage'
 
 type Session = { state: 'loading' } | { state: 'out' } | { state: 'in'; me: Me }
@@ -71,6 +72,8 @@ export default function App() {
         <Route path="/pos-live" element={<PosLivePage me={me} />} />
         <Route path="/pos-deploy" element={<PosDeployPage me={me} />} />
         <Route path="/pos-notices" element={<PosNoticePage me={me} />} />
+        {/* 기준정보 전부가 이 경로 하나입니다 — 코드만 다릅니다. */}
+        <Route path="/master/:code" element={<MasterPage me={me} />} />
         <Route path="/operators" element={<OperatorsPage me={me} />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>

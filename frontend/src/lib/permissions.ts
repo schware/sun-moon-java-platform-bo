@@ -14,6 +14,7 @@ export const SCREENS = [
   'BOARD', 'COMMON_CODE', 'DEVICE', 'MENU', 'SOLD_OUT', 'STORE', 'TABLE',
   'SALES', 'APP_SALES', 'TERMINAL',
   'POS_BUSINESS', 'POS_LIVE', 'POS_DEPLOY', 'POS_NOTICE',
+  'MASTER',
   'OPERATOR'
 ] as const
 export type Screen = (typeof SCREENS)[number]
@@ -40,6 +41,7 @@ export const SCREEN_LABEL: Record<Screen, string> = {
   POS_LIVE: 'Live Check',
   POS_DEPLOY: '배포 현황',
   POS_NOTICE: '단말 공지',
+  MASTER: '기준정보',
   OPERATOR: '운영자'
 }
 
@@ -140,6 +142,12 @@ export const MENU: MenuItem[] = [
   { group: 'MASTER', screen: 'MENU', path: '/menus', label: SCREEN_LABEL.MENU },
   { group: 'MASTER', screen: 'SOLD_OUT', path: '/sold-out', label: SCREEN_LABEL.SOLD_OUT },
   { group: 'MASTER', screen: 'COMMON_CODE', path: '/common-code', label: SCREEN_LABEL.COMMON_CODE },
+  // 공통 CRUD가 그리는 것들. 화면이 아니라 **정의**라서, 여기 한 줄이
+  // 늘어나도 새 page 파일은 안 생깁니다 (umbrella docs/adr/0014).
+  { group: 'MASTER', screen: 'MASTER', path: '/master/COMPANY', label: '회사' },
+  { group: 'MASTER', screen: 'MASTER', path: '/master/BRAND', label: '브랜드' },
+  { group: 'MASTER', screen: 'MASTER', path: '/master/VENDOR', label: '거래처' },
+  { group: 'MASTER', screen: 'MASTER', path: '/master/CARD_ISSUER', label: '카드사' },
 
   { group: 'POS', screen: 'DEVICE', path: '/devices', label: SCREEN_LABEL.DEVICE },
   { group: 'POS', screen: 'TERMINAL', path: '/terminals', label: SCREEN_LABEL.TERMINAL },

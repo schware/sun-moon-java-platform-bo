@@ -410,6 +410,44 @@ export interface PosNotice {
   acknowledgedBy?: string[]
 }
 
+/* ---- 기준정보 공통 CRUD (umbrella docs/adr/0014) --------------------
+ *
+ * 화면이 자기 모양을 코드로 갖고 있지 않습니다. 서버가 정의를 주고
+ * MasterPage 가 그대로 그립니다 — 기준정보를 하나 더 붙여도 프런트엔드는
+ * 한 줄도 안 바뀝니다.
+ */
+
+export type MasterFieldType = 'TEXT' | 'LONG_TEXT' | 'NUMBER' | 'BOOLEAN' | 'DATE' | 'CODE'
+
+export interface MasterField {
+  name: string
+  label: string
+  type: MasterFieldType
+  required: boolean
+  /** 조회 조건으로 쓸 수 있는가. 색인 없는 칸으로 거르면 느려집니다. */
+  searchable: boolean
+  /** 고칠 수 있는가. 키는 false 입니다 — 키를 바꾸는 것은 다른 행을 만드는 일입니다. */
+  editable: boolean
+  /** type === 'CODE' 일 때 어느 공통코드 그룹인가. */
+  codeGroup: string | null
+}
+
+export interface MasterDefinition {
+  code: string
+  label: string
+  idColumn: string
+  fields: MasterField[]
+}
+
+/**
+ * 기준정보 한 행.
+ *
+ * 타입이 느슨한 것이 이 구조의 요점이자 대가입니다. 표마다 interface 를
+ * 만들면 타입이 지켜 주지만, 그러면 표마다 파일이 하나씩 늘어 **공통화의
+ * 의미가 사라집니다**. 대신 무엇이 들어 있는지는 정의가 말해 줍니다.
+ */
+export type MasterRow = Record<string, unknown>
+
 export interface MenuPrice {
   id: number
   menuCode: string

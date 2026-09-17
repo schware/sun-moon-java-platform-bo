@@ -212,6 +212,25 @@ input:focus, textarea:focus, select:focus {
 .line-list { list-style: none; margin: 0; padding: 0; }
 .line-list li { padding: 1px 0; white-space: nowrap; }
 
+/* 기준정보 입력 폼 — 칸 수가 표마다 다르므로 흘려 배치합니다.
+   격자 열 수를 고정하면 칸이 셋인 표에서는 빈 자리가, 열둘인 표에서는
+   가로 스크롤이 생깁니다. */
+.master-form { display: flex; flex-wrap: wrap; gap: 12px; }
+.master-form .field { min-width: 180px; }
+.master-form .field.wide { flex: 1 1 100%; }
+.master-form textarea {
+  width: 100%; font-family: inherit; font-size: 13.5px;
+  color: var(--text); background: var(--panel-2, #0e1118);
+  border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px;
+}
+/* 필수 표시. 빨간 별 하나면 충분합니다 — 문장으로 쓰면 칸마다 길어집니다. */
+.req { color: var(--danger); }
+
+/* 변경 이력의 JSON. 길어서 줄바꿈하면 표가 읽히지 않으므로 잘라 둡니다. */
+td.json { max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
+
+.btn.link.danger { color: var(--danger); }
+
 .table-wrap { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
 th, td { text-align: left; padding: 11px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
