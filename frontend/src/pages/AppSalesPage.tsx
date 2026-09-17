@@ -209,7 +209,21 @@ export default function AppSalesPage({ me }: { me: Me }) {
                           ? <span className="badge on">{seatLabel(row)}</span>
                           : <span className="muted">테이블 아님</span>}
                       </td>
-                      <td>{row.lines?.[0]?.menuName ?? ''}</td>
+                      {/* 첫 줄만 보여주던 자리입니다. 장바구니가 붙은
+                          뒤로는 나머지를 버리는 셈이었습니다 — 원장에는
+                          세 줄이 있는데 화면에는 한 줄만 있었습니다. */}
+                      <td>
+                        {(row.lines ?? []).length === 0 ? '' : (
+                          <ul className="line-list">
+                            {row.lines.map((line) => (
+                              <li key={line.detailSeq}>
+                                {line.menuName}
+                                {line.quantity > 1 && <span className="muted"> × {line.quantity}</span>}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </td>
                       <td className="num">{MONEY.format(row.totalAmount)}</td>
                       <td>
                         <span className={`badge ${STATUS_TONE[row.status] ?? ''}`}>

@@ -215,7 +215,29 @@ export default function SalesPage({ me }: { me: Me }) {
                                       <tr key={order.id}>
                                         <td className="muted">{order.id}</td>
                                         <td className="muted">{order.customerId}</td>
-                                        <td>{order.menuName}</td>
+                                        {/*
+                                          줄이 있으면 펴서 보여줍니다.
+                                          "외 2건"으로 두면 매출 조회에서
+                                          무엇이 팔렸는지 끝내 알 수 없고,
+                                          그게 이 화면이 답해야 할 질문입니다.
+                                        */}
+                                        <td>
+                                          {order.lines.length === 0 ? order.menuName : (
+                                            <ul className="line-list">
+                                              {order.lines.map((line) => (
+                                                <li key={line.seq}>
+                                                  {line.menuName}
+                                                  {line.quantity > 1 && (
+                                                    <span className="muted"> × {line.quantity}</span>
+                                                  )}
+                                                  <span className="muted">
+                                                    {' '}{MONEY.format(line.lineAmount)}
+                                                  </span>
+                                                </li>
+                                              ))}
+                                            </ul>
+                                          )}
+                                        </td>
                                         <td className="num">{MONEY.format(order.amount)}</td>
                                         <td>{STATUS_LABEL[order.status] ?? order.status}</td>
                                         <td className="muted">{order.acceptedBy ?? ''}</td>

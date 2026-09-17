@@ -56,6 +56,17 @@ public record SalesOrder(
         String pickupBy,
         Instant pickupAt,
         boolean pickupOverride,
+        /**
+         * 주문의 줄들 (§4.4.2).
+         *
+         * <p>{@code menuName} 은 이제 메뉴 이름이 아니라 <b>주문의
+         * 이름</b>입니다 — "짜장면 외 2건". 무엇이 얼마나 팔렸는지는
+         * 여기에만 있고, 매출 분석(§6.2)이 묻는 것이 그것입니다.
+         *
+         * <p>2026-09-18 이전 주문은 비어 있습니다. 그때는 주문 하나가
+         * 메뉴 하나였고, 지어 넣지 않았습니다.
+         */
+        java.util.List<Line> lines,
         LocalDate businessDate,
         Instant placedAt,
         Instant updatedAt) {
@@ -68,5 +79,20 @@ public record SalesOrder(
     /** 번호를 확인하지 않고 내준 건인가. */
     public boolean handedOverWithoutCheck() {
         return pickupOverride;
+    }
+
+    /** 이 주문에 담긴 메뉴 수량의 합. 줄 수가 아니라 개수입니다. */
+    public int itemCount() {
+        return lines == null ? 0 : lines.stream().mapToInt(Line::quantity).sum();
+    }
+
+    /** 주문 한 줄. Order 의 것을 그대로 받아 적습니다 — BO는 이 값을 만들지 않습니다. */
+    public record Line(
+            int seq,
+            String menuCode,
+            String menuName,
+            int quantity,
+            BigDecimal unitPrice,
+            BigDecimal lineAmount) {
     }
 }

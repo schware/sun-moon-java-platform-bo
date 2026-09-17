@@ -207,6 +207,11 @@ input:focus, textarea:focus, select:focus {
 
 /* ---------- tables ---------- */
 
+/* 주문 한 건 안의 줄들. 표 안의 표를 만들지 않는 이유: 열이 두 겹이
+   되면 어느 금액이 줄이고 어느 것이 주문인지 안 읽힙니다. */
+.line-list { list-style: none; margin: 0; padding: 0; }
+.line-list li { padding: 1px 0; white-space: nowrap; }
+
 .table-wrap { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
 th, td { text-align: left; padding: 11px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }

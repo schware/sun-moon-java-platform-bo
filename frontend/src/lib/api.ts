@@ -91,6 +91,16 @@ export interface SalesSummary {
  * 한 건의 주문. 매출 조회의 펼침과 APP 매출 조회가 같이 씁니다 — 서버가
  * 주는 것이 하나라서, 화면마다 다르게 부르지 않습니다.
  */
+/** 주문 한 줄. Order 가 만든 값을 그대로 받습니다. */
+export interface SalesOrderLine {
+  seq: number
+  menuCode: string | null
+  menuName: string
+  quantity: number
+  unitPrice: number
+  lineAmount: number
+}
+
 export interface SalesOrder {
   id: number
   storeId: string
@@ -124,6 +134,14 @@ export interface SalesOrder {
    * (그러면 수령번호가 이미 장식입니다).
    */
   pickupOverride: boolean
+  /**
+   * 주문의 줄들 (§4.4.2).
+   *
+   * `menuName` 은 이제 메뉴 이름이 아니라 **주문의 이름**입니다 —
+   * "짜장면 외 2건". 무엇이 얼마나 팔렸는지는 여기에만 있습니다.
+   * 2026-09-18 이전 주문은 비어 있습니다.
+   */
+  lines: SalesOrderLine[]
   businessDate: string
   placedAt: string
   updatedAt: string
