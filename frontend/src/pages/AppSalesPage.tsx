@@ -23,13 +23,14 @@ const STATUS_LABEL: Record<string, string> = {
   ACCEPTED: '수락',
   REJECTED: '거절',
   EXPIRED: '미응답',
+  COOKING: '조리 중',
   PRODUCED: '조리 완료',
   DELIVERING: '배달 중',
   COMPLETED: '수령 완료'
 }
 
 /** Order가 매출로 세는 것과 같은 상태들 — 거절·미응답은 매출이 아닙니다. */
-const COUNTS_AS_SALES = new Set(['ACCEPTED', 'PRODUCED', 'DELIVERING', 'COMPLETED'])
+const COUNTS_AS_SALES = new Set(['ACCEPTED', 'COOKING', 'PRODUCED', 'DELIVERING', 'COMPLETED'])
 
 type Origin = 'all' | 'table' | 'other'
 

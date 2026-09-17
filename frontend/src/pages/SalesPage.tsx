@@ -17,6 +17,7 @@ const STATUS_LABEL: Record<string, string> = {
   ACCEPTED: '수락',
   REJECTED: '거절',
   EXPIRED: '미응답',
+  COOKING: '조리 중',
   PRODUCED: '조리 완료',
   DELIVERING: '배달 중',
   COMPLETED: '완료'
