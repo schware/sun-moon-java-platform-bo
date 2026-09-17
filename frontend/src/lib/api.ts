@@ -207,6 +207,32 @@ export interface SoldOutBoard {
   menus: SoldOutRow[]
 }
 
+/**
+ * APP-SERVER 원장에서 읽어 온 주문 한 건.
+ *
+ * `channel` 이 이 화면의 요점입니다 — 전에는 "테이블 번호가 있는가"로
+ * QR 주문을 짐작했는데, 그건 도착지이지 유입 경로가 아닙니다.
+ *
+ * `status` 는 OMS의 상태가 아니라 **손님의 요청이 어떻게 됐는가**입니다.
+ * 그래서 OMS가 거절한 주문(REJECTED)과 넘기지도 못한 주문(SEND_FAILED)도
+ * 여기 나옵니다 — 매출 조회에는 아예 없는 것들입니다.
+ */
+export interface AppOrderRow {
+  id: number
+  orderNo: string
+  storeId: string
+  businessDate: string
+  channel: 'APP' | 'QR' | 'EXTERNAL'
+  type: 'IN_STORE' | 'DELIVERY'
+  status: 'CREATED' | 'SENT' | 'REJECTED' | 'SEND_FAILED' | 'CANCELLED'
+  floor: number | null
+  tableNo: string | null
+  totalAmount: number
+  pickupNo: string | null
+  lines: { detailSeq: number; menuCode: string; menuName: string; quantity: number }[]
+  placedAt: string
+}
+
 export interface MenuPrice {
   id: number
   menuCode: string

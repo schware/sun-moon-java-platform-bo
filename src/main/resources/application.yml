@@ -49,6 +49,10 @@ bo:
     base-url: ${ORDER_SERVICE_URL:http://localhost:8083/order}
   device-server:
     base-url: ${DEVICE_SERVER_URL:http://localhost:8087}
+  # 손님 주문의 원장. BO는 이것도 읽기만 합니다 — APP 주문이 어느
+  # 경로로 들어왔고 어느 자리로 갔는지는 그 원장만 압니다.
+  app-server:
+    base-url: ${APP_SERVER_URL:http://localhost:8086/app-server}
   # 테이블 QR이 담을 주소의 앞부분. 뒤에 테이블의 코드가 붙습니다.
   #
   # **손님 휴대폰이 LTE로 여는 주소여야 합니다.** 여기에 192.168.x 를 넣고

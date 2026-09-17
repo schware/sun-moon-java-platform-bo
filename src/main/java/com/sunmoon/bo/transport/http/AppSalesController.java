@@ -1,7 +1,7 @@
 package com.sunmoon.bo.transport.http;
 
-import com.sunmoon.bo.domain.sales.SalesOrder;
-import com.sunmoon.bo.domain.sales.SalesService;
+import com.sunmoon.bo.domain.apporder.AppOrderRepository;
+import com.sunmoon.bo.domain.apporder.AppOrderRow;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -19,55 +19,55 @@ import java.util.List;
  * APP 매출 조회 — 손님 쪽으로 들어온 주문을 <b>어디서 와서 어디로
  * 갔는가</b>로 봅니다.
  *
- * <p>매출 조회({@link SalesController})와 <b>같은 데이터</b>를 읽습니다.
- * 따로 있는 이유는 묻는 질문이 다르기 때문입니다: 저쪽은 "하루에 얼마를
- * 팔았나"이고 여기는 "그 주문이 몇 번 자리로 갔고 수령번호가 무엇이었나"
- * 입니다. 한 화면에 둘을 섞으면 열이 열두 개가 되고, 둘 다 읽기 어려워
- * 집니다.
+ * <p><b>2026-09-17에 읽는 곳이 바뀌었습니다.</b> 전에는 OMS의 매출
+ * 내역을 읽고 "테이블 번호가 있는가"로 QR 주문을 짐작했습니다. 이제는
+ * APP-SERVER의 <b>주문 원장</b>을 읽습니다 (umbrella {@code docs/adr/0012}).
+ * 두 가지가 달라집니다:
+ *
+ * <ul>
+ *   <li>채널이 <b>짐작이 아니라 기록</b>입니다. 도착지(테이블 번호)와
+ *       유입 경로(QR/APP)는 다른 값이고, 테이블 없는 QR이 생기는 날
+ *       옛 짐작은 틀립니다.
+ *   <li><b>OMS가 거절한 주문도 보입니다.</b> 손님에게는 그것도 일어난
+ *       일인데, 매출 내역에는 아예 없었습니다.
+ * </ul>
+ *
+ * <p>매출 조회({@link SalesController})와 여전히 다른 화면입니다. 저쪽은
+ * "하루에 얼마를 팔았나"라서 일자×매장으로 접어 보고, 여기는 "그 주문이
+ * 몇 번 자리로 갔고 수령번호가 무엇이었나"라서 한 건씩 펼쳐 봅니다.
  *
  * <p>권한도 따로입니다 — 홀 담당에게 "어느 자리 주문이었나"는 열어주되
  * 매장 전체 매출액은 안 보이게 할 수 있어야 합니다.
- *
- * <p><b>지금은 채널 구분이 없습니다.</b> 주문에 "어느 경로로 들어왔나"를
- * 적는 칸이 아직 없어서, 갈라볼 수 있는 것은 <b>테이블 QR로 들어왔는가</b>
- * ({@code tableNo}가 있는가) 하나뿐입니다. POS가 직접 주문을 만들기
- * 시작하면 그때는 진짜 채널 칸이 필요해집니다 — 지금 지어내면 그날
- * 두 군데를 고치게 됩니다.
  */
 @RestController
 @RequestMapping("/api/app-sales")
-@Tag(name = "AppSales", description = "APP·테이블 주문 조회 (Order 서비스에서 읽어옵니다)")
+@Tag(name = "AppSales", description = "APP·QR 주문 조회 (APP-SERVER 원장을 읽습니다)")
 public class AppSalesController {
 
-    private final SalesService service;
+    private final AppOrderRepository orders;
 
-    public AppSalesController(SalesService service) {
-        this.service = service;
+    public AppSalesController(AppOrderRepository orders) {
+        this.orders = orders;
     }
 
     /**
-     * 그 판매일자에 그 매장으로 들어온 주문.
+     * 그 판매일자에 들어온 APP·QR 주문.
      *
-     * <p>{@code fromTable}이 {@code true}면 테이블 QR로 들어온 것만,
-     * {@code false}면 그 밖의 것만, 비우면 전부입니다. 거르는 일을
-     * 화면이 아니라 여기서 하는 이유는, 화면이 "전부 받아서 세 개만
-     * 그리는" 모양이 되면 건수와 합계가 화면마다 달라지기 때문입니다.
+     * <p>{@code channel} 은 {@code QR} 또는 {@code APP} 입니다. 비우면
+     * 전부입니다. 거르는 일을 화면이 아니라 원장에서 하는 이유는, 화면이
+     * "전부 받아서 몇 개만 그리는" 모양이 되면 건수와 합계가 화면마다
+     * 달라지기 때문입니다.
      */
     @GetMapping("/orders")
     @PreAuthorize("hasRole('SUPER_ADMIN') or hasAuthority('APP_SALES_VIEW')")
-    @Operation(summary = "APP·테이블 주문 내역",
-            description = "판매일자 기준입니다. fromTable=true 면 테이블 QR로 들어온 주문만, "
-                    + "false 면 그 밖(매장 선택 화면)만, 비우면 전부입니다.")
-    @ApiResponse(responseCode = "502", description = "Order 서비스에 연결하지 못했습니다")
-    public List<SalesOrder> orders(
+    @Operation(summary = "APP·QR 주문 내역",
+            description = "판매일자 기준입니다. channel 은 QR 또는 APP, 비우면 전부입니다. "
+                    + "OMS가 거절한 주문도 함께 나옵니다 — 손님에게는 그것도 일어난 일입니다.")
+    @ApiResponse(responseCode = "502", description = "APP-SERVER에 연결하지 못했습니다")
+    public List<AppOrderRow> orders(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate businessDate,
             @RequestParam(required = false) String storeId,
-            @RequestParam(required = false) Boolean fromTable) {
-
-        List<SalesOrder> all = service.detail(businessDate, storeId);
-        if (fromTable == null) {
-            return all;
-        }
-        return all.stream().filter(order -> order.fromTable() == fromTable).toList();
+            @RequestParam(required = false) String channel) {
+        return orders.findByDay(businessDate, storeId, channel);
     }
 }

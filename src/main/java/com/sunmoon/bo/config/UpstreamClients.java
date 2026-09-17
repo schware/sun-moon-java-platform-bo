@@ -9,7 +9,7 @@ import org.springframework.web.client.RestClient;
 import java.time.Duration;
 
 /**
- * BO's two read-only upstreams.
+ * BO's read-only upstreams.
  *
  * <p>BO owns 기준 정보 — 매장, 메뉴, 장비, 운영자. It does not own 매출 and
  * it does not own who is connected: those are facts that settle in Order
@@ -36,6 +36,18 @@ public class UpstreamClients {
     /** The Device Server — the only thing that knows which terminals are actually connected. */
     @Bean
     public RestClient deviceServerClient(@Value("${bo.device-server.base-url}") String baseUrl) {
+        return build(baseUrl);
+    }
+
+    /**
+     * APP-SERVER — 손님 주문의 원장이 있는 곳 (umbrella docs/adr/0012).
+     *
+     * <p>매출과 마찬가지로 BO가 소유하지 않는 사실입니다. APP 주문이
+     * 어느 경로로 들어왔고 어느 자리로 갔는지는 그 원장만 압니다 —
+     * OMS는 매장이 받은 일감만 알고, 거절된 주문은 아예 모릅니다.
+     */
+    @Bean
+    public RestClient appServerClient(@Value("${bo.app-server.base-url}") String baseUrl) {
         return build(baseUrl);
     }
 
