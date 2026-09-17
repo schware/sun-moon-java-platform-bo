@@ -14,6 +14,10 @@ import TablesPage from './pages/TablesPage'
 import SalesPage from './pages/SalesPage'
 import AppSalesPage from './pages/AppSalesPage'
 import TerminalsPage from './pages/TerminalsPage'
+import PosBusinessPage from './pages/PosBusinessPage'
+import PosLivePage from './pages/PosLivePage'
+import PosDeployPage from './pages/PosDeployPage'
+import PosNoticePage from './pages/PosNoticePage'
 import OperatorsPage from './pages/OperatorsPage'
 
 type Session = { state: 'loading' } | { state: 'out' } | { state: 'in'; me: Me }
@@ -63,6 +67,10 @@ export default function App() {
         <Route path="/sales" element={<SalesPage me={me} />} />
         <Route path="/app-sales" element={<AppSalesPage me={me} />} />
         <Route path="/terminals" element={<TerminalsPage me={me} />} />
+        <Route path="/pos-business" element={<PosBusinessPage me={me} />} />
+        <Route path="/pos-live" element={<PosLivePage me={me} />} />
+        <Route path="/pos-deploy" element={<PosDeployPage me={me} />} />
+        <Route path="/pos-notices" element={<PosNoticePage me={me} />} />
         <Route path="/operators" element={<OperatorsPage me={me} />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>

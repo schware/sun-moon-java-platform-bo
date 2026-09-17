@@ -175,6 +175,35 @@ input:focus, textarea:focus, select:focus {
 /* Amber rather than red: a dark terminal or an unregistered one is
    something to look at, not a failure of the system showing it. */
 .badge.warn { background: rgba(255, 176, 32, 0.12); color: var(--warn); border-color: rgba(255, 176, 32, 0.3); }
+/* Red is reserved for "this terminal cannot do its job right now." Amber
+   already covers "worth a look," and if both read the same colour the
+   Live Check grid stops being scannable — which is the only reason that
+   grid exists. */
+.badge.down { background: rgba(255, 107, 107, 0.12); color: var(--danger); border-color: rgba(255, 107, 107, 0.3); }
+
+/* ---------- Live Check ---------- */
+
+/* One column per axis, fixed width, so every terminal's 연결 sits under
+   every other terminal's 연결. A table would do it too, but the axes are
+   a fixed set of five and the row label matters more than any header. */
+.axis-grid { display: grid; grid-template-columns: repeat(5, minmax(58px, 1fr)); gap: 6px; }
+.axis-cell {
+  text-align: center; padding: 6px 4px; border-radius: 7px;
+  border: 1px solid var(--border); background: #161a22; font-size: 11px;
+}
+.axis-cell .axis-name { color: var(--muted); font-size: 10.5px; display: block; margin-bottom: 3px; }
+.axis-cell.ok { background: rgba(62, 207, 142, 0.1); border-color: rgba(62, 207, 142, 0.28); color: var(--up); }
+.axis-cell.warn { background: rgba(255, 176, 32, 0.1); border-color: rgba(255, 176, 32, 0.28); color: var(--warn); }
+.axis-cell.down { background: rgba(255, 107, 107, 0.1); border-color: rgba(255, 107, 107, 0.28); color: var(--danger); }
+.axis-cell.unknown { color: var(--muted); }
+.axis-cell.ok .axis-name,
+.axis-cell.warn .axis-name,
+.axis-cell.down .axis-name { color: inherit; opacity: 0.75; }
+
+/* 어긋난 대목. 축 색깔과 같은 빨강을 쓰지 않습니다 — 이건 고장이 아니라
+   "축들이 서로 다른 말을 한다"는 관찰이고, 사람이 읽어야 할 문장입니다. */
+.mismatch-list { margin: 10px 0 0; padding-left: 18px; font-size: 12.5px; color: var(--warn); }
+.mismatch-list li { margin: 3px 0; }
 
 /* ---------- tables ---------- */
 

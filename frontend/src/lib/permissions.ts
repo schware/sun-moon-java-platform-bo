@@ -12,7 +12,9 @@ import type { Me } from './api'
 
 export const SCREENS = [
   'BOARD', 'COMMON_CODE', 'DEVICE', 'MENU', 'SOLD_OUT', 'STORE', 'TABLE',
-  'SALES', 'APP_SALES', 'TERMINAL', 'OPERATOR'
+  'SALES', 'APP_SALES', 'TERMINAL',
+  'POS_BUSINESS', 'POS_LIVE', 'POS_DEPLOY', 'POS_NOTICE',
+  'OPERATOR'
 ] as const
 export type Screen = (typeof SCREENS)[number]
 
@@ -34,6 +36,10 @@ export const SCREEN_LABEL: Record<Screen, string> = {
   SALES: 'POS 매출 조회',
   APP_SALES: 'APP 매출 조회',
   TERMINAL: '단말 현황',
+  POS_BUSINESS: '개점 현황',
+  POS_LIVE: 'Live Check',
+  POS_DEPLOY: '배포 현황',
+  POS_NOTICE: '단말 공지',
   OPERATOR: '운영자'
 }
 
@@ -43,7 +49,8 @@ export const SCREEN_LABEL: Record<Screen, string> = {
  * matrix greys the other three columns rather than offering permissions
  * that could only ever be inert.
  */
-export const VIEW_ONLY_SCREENS: readonly Screen[] = ['SALES', 'APP_SALES', 'TERMINAL']
+export const VIEW_ONLY_SCREENS: readonly Screen[] =
+  ['SALES', 'APP_SALES', 'TERMINAL', 'POS_BUSINESS', 'POS_LIVE']
 
 /**
  * 화면마다 실제로 뜻이 있는 행위. 안 적힌 화면은 네 가지 모두입니다.
@@ -56,7 +63,22 @@ export const SCREEN_ACTIONS: Partial<Record<Screen, readonly Action[]>> = {
   SALES: ['VIEW'],
   APP_SALES: ['VIEW'],
   TERMINAL: ['VIEW'],
-  SOLD_OUT: ['VIEW', 'CREATE', 'DELETE']
+  SOLD_OUT: ['VIEW', 'CREATE', 'DELETE'],
+
+  // 개점·마감은 POS가 누르는 것이고 BO는 결과를 봅니다. Live Check 도
+  // 전부 장비가 만든 사실이라 BO에서 쓸 것이 없습니다.
+  POS_BUSINESS: ['VIEW'],
+  POS_LIVE: ['VIEW'],
+
+  // 배포는 SAVE 가 마스터 버전 올리기, CREATE 가 프로그램 배포 등록
+  // 입니다. 앞은 이미 있는 것을 다시 내리는 일이고, 뒤는 **매장 장비에
+  // 깔릴 파일을 새로 지정하는** 일이라 무게가 다릅니다. DELETE 는
+  // 없습니다 — 배포는 지우는 것이 아니라 새로 내는 것입니다.
+  POS_DEPLOY: ['VIEW', 'CREATE', 'SAVE'],
+
+  // 공지는 걸거나 안 겁니다. 고치는 것이 없는 이유: 이미 단말에 뜬
+  // 글을 고치면 본 사람과 안 본 사람이 서로 다른 글을 봅니다.
+  POS_NOTICE: ['VIEW', 'CREATE']
 }
 
 /** 이 화면에서 줄 수 있는 권한인가. 못 주는 칸은 체크박스를 죽입니다. */
@@ -122,6 +144,10 @@ export const MENU: MenuItem[] = [
   { group: 'POS', screen: 'DEVICE', path: '/devices', label: SCREEN_LABEL.DEVICE },
   { group: 'POS', screen: 'TERMINAL', path: '/terminals', label: SCREEN_LABEL.TERMINAL },
   { group: 'POS', screen: 'SALES', path: '/sales', label: '매출 조회' },
+  { group: 'POS', screen: 'POS_BUSINESS', path: '/pos-business', label: SCREEN_LABEL.POS_BUSINESS },
+  { group: 'POS', screen: 'POS_LIVE', path: '/pos-live', label: SCREEN_LABEL.POS_LIVE },
+  { group: 'POS', screen: 'POS_DEPLOY', path: '/pos-deploy', label: SCREEN_LABEL.POS_DEPLOY },
+  { group: 'POS', screen: 'POS_NOTICE', path: '/pos-notices', label: SCREEN_LABEL.POS_NOTICE },
 
   { group: 'APP', screen: 'TABLE', path: '/tables', label: SCREEN_LABEL.TABLE },
   { group: 'APP', screen: 'APP_SALES', path: '/app-sales', label: '매출 조회' },

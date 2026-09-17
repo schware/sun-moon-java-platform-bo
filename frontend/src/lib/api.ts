@@ -233,6 +233,153 @@ export interface AppOrderRow {
   placedAt: string
 }
 
+/* ---- POS 운영 관제 (업무 정의서 §3.4~3.6) ------------------------------
+ *
+ * 전부 POS-Server 가 갖고 있는 값입니다. BO는 읽어서 그릴 뿐이고,
+ * 사람이 시작하는 셋(마스터 버전, 프로그램 배포, 공지)만 대신 보냅니다.
+ */
+
+export type AxisState = 'OK' | 'WARN' | 'DOWN' | 'UNKNOWN'
+
+/** 다섯 축. 순서가 화면의 열 순서입니다 — 밖에서 안으로: 연결 → 데이터. */
+export const LIVE_AXES = ['CONNECTION', 'APPLICATION', 'BUSINESS', 'DEVICE', 'DATA'] as const
+export type LiveAxis = (typeof LIVE_AXES)[number]
+
+export const AXIS_LABEL: Record<LiveAxis, string> = {
+  CONNECTION: '연결',
+  APPLICATION: '프로그램',
+  BUSINESS: '영업',
+  DEVICE: '장비',
+  DATA: '데이터'
+}
+
+export interface PosBusinessState {
+  posNo: string
+  status: 'OPEN' | 'CLOSED'
+  /** OPEN / CLOSE / REOPEN. 상태와 다릅니다 — 재개점한 POS도 상태는 OPEN 입니다. */
+  lastEvent: 'OPEN' | 'CLOSE' | 'REOPEN'
+  openCount: number
+  eventAt: string
+  receivedAt: string
+}
+
+export interface PosBusinessStates {
+  storeId: string
+  businessDate: string
+  terminals: PosBusinessState[]
+}
+
+export interface PosBusinessHistoryEntry {
+  seq: number
+  event: 'OPEN' | 'CLOSE' | 'REOPEN'
+  /** APPLIED / DUPLICATE / IGNORED_STALE — 무시된 전문도 남습니다. */
+  result: 'APPLIED' | 'DUPLICATE' | 'IGNORED_STALE'
+  message: string | null
+  eventAt: string
+  receivedAt: string
+  irtId: string | null
+}
+
+export interface PosBusinessHistory {
+  storeId: string
+  posNo: string
+  businessDate: string
+  history: PosBusinessHistoryEntry[]
+}
+
+export interface PosLiveRow {
+  posNo: string
+  axes: Record<string, AxisState>
+  overall: AxisState
+  normal: boolean
+  programVersion: string | null
+  dbVersion: string | null
+  /** 서버 - POS, 초. 양수면 POS가 느립니다. */
+  clockDriftSeconds: number | null
+  lastReportedAt: string | null
+  mismatches: string[]
+}
+
+export interface PosLiveCheck {
+  storeId: string
+  businessDate: string
+  terminals: PosLiveRow[]
+}
+
+export interface MasterPlan {
+  masterType: string
+  label: string
+  currentVersion: number
+  appliedVersion: number | null
+  mode: 'FULL' | 'DELTA' | 'UP_TO_DATE'
+  lastError: string | null
+}
+
+export interface MasterPlans {
+  storeId: string
+  deviceType: string
+  deviceNo: string
+  masters: MasterPlan[]
+}
+
+export interface MasterPending {
+  deviceType: string
+  deviceNo: string
+  masterType: string
+  appliedVersion: number | null
+  status: 'SENT' | 'APPLIED' | 'FAILED'
+  attempts: number
+  lastError: string | null
+  sentAt: string | null
+}
+
+export interface ProgramInstall {
+  deviceType: string
+  deviceNo: string
+  program: string
+  installedVersion: string | null
+  targetVersion: string | null
+  status: 'OFFERED' | 'DOWNLOADED' | 'INSTALLED' | 'FAILED'
+  attempts: number
+  lastError: string | null
+  offeredAt: string | null
+  installedAt: string | null
+}
+
+export interface ProgramRelease {
+  id: number
+  /** 'ALL_STORES' 또는 매장 코드. 매장 지정이 전 매장을 이깁니다. */
+  scope: string
+  deviceType: string
+  program: string
+  version: string
+  mandatory: boolean
+  note: string | null
+  releasedAt: string
+}
+
+export interface ProgramStatus {
+  storeId: string
+  installs: ProgramInstall[]
+  releases: ProgramRelease[]
+}
+
+export interface PosNotice {
+  id: number
+  scope: string
+  deviceType: string | null
+  title: string
+  body: string
+  urgent: boolean
+  startsAt: string
+  endsAt: string | null
+  createdBy: string | null
+  active: boolean
+  /** 긴급일 때만 옵니다 — 일반 공지는 아무도 확인하지 않습니다. */
+  acknowledged?: number
+  acknowledgedBy?: string[]
+}
+
 export interface MenuPrice {
   id: number
   menuCode: string
