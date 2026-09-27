@@ -49,6 +49,9 @@ bo:
     base-url: ${ORDER_SERVICE_URL:http://localhost:8083/order}
   device-server:
     base-url: ${DEVICE_SERVER_URL:http://localhost:8087}
+    # Device Server 의 ADMIN_TOKEN 과 같은 값. 없으면 헤더를 안 보냅니다
+    # (Device Server 가 enforce 면 POS 운영 화면이 401). 값은 서버 .env 에만.
+    admin-token: ${DEVICE_SERVER_ADMIN_TOKEN:}
   # 손님 주문의 원장. BO는 이것도 읽기만 합니다 — APP 주문이 어느
   # 경로로 들어왔고 어느 자리로 갔는지는 그 원장만 압니다.
   app-server:

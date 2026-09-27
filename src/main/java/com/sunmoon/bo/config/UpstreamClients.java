@@ -33,10 +33,22 @@ public class UpstreamClients {
         return build(baseUrl);
     }
 
-    /** The Device Server — the only thing that knows which terminals are actually connected. */
+    /**
+     * The Device Server — the only thing that knows which terminals are actually connected.
+     *
+     * <p>Every BO call to it is an admin call (공지, 마스터 버전, 배포, 재처리), so
+     * it carries {@code X-Admin-Token} (Device Server ApiGuard, store-app.md §2.2).
+     * Without the env the header is simply absent: Device Server in {@code warn}
+     * logs it and lets it through; in {@code enforce} BO's POS screens get 401.
+     */
     @Bean
-    public RestClient deviceServerClient(@Value("${bo.device-server.base-url}") String baseUrl) {
-        return build(baseUrl);
+    public RestClient deviceServerClient(
+            @Value("${bo.device-server.base-url}") String baseUrl,
+            @Value("${bo.device-server.admin-token:}") String adminToken) {
+        if (adminToken == null || adminToken.isBlank()) {
+            return build(baseUrl);
+        }
+        return builder(baseUrl).defaultHeader("X-Admin-Token", adminToken.trim()).build();
     }
 
     /**
@@ -52,9 +64,13 @@ public class UpstreamClients {
     }
 
     private static RestClient build(String baseUrl) {
+        return builder(baseUrl).build();
+    }
+
+    private static RestClient.Builder builder(String baseUrl) {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout((int) CONNECT_TIMEOUT.toMillis());
         factory.setReadTimeout((int) READ_TIMEOUT.toMillis());
-        return RestClient.builder().baseUrl(baseUrl).requestFactory(factory).build();
+        return RestClient.builder().baseUrl(baseUrl).requestFactory(factory);
     }
 }
