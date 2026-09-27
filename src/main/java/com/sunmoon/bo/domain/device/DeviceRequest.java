@@ -14,11 +14,13 @@ public record DeviceRequest(
         @Pattern(regexp = "POS|KDS|DID", message = "terminalType must be POS, KDS or DID") String terminalType,
         String ipAddress,
         @Min(1) @Max(65535) Integer port,
-        Boolean active) {
+        Boolean active,
+        @Pattern(regexp = "MAIN|SUB", message = "kdsRole must be MAIN or SUB") String kdsRole) {
 
     public Device toDomain() {
         return new Device(deviceId, name, deviceType, location, blankToNull(storeId), terminalType,
-                ipAddress, port, active == null || active);
+                ipAddress, port, active == null || active,
+                "KDS".equals(terminalType) ? (kdsRole == null ? "SUB" : kdsRole) : null);
     }
 
     /**

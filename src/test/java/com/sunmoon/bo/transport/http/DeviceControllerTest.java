@@ -43,7 +43,7 @@ class DeviceControllerTest {
     void listsDevices() throws Exception {
         when(service.list(nullable(String.class)))
                 .thenReturn(List.of(new Device(
-                        "kds-01", "주방 1번", "KDS", "1층", "store-01", "KDS", "192.168.0.50", 80, true)));
+                        "kds-01", "주방 1번", "KDS", "1층", "store-01", "KDS", "192.168.0.50", 80, true, "MAIN")));
 
         mockMvc.perform(get("/api/devices"))
                 .andExpect(status().isOk())

@@ -25,7 +25,7 @@ class TerminalStatusServiceTest {
 
     private static Device terminal(String deviceId, String storeId, String terminalType) {
         return new Device(deviceId, deviceId + " 화면", terminalType, "1층", storeId, terminalType,
-                null, null, true);
+                null, null, true, null);
     }
 
     private static ConnectedTerminal session(String deviceId, String storeId, String type) {
@@ -80,7 +80,7 @@ class TerminalStatusServiceTest {
     @Test
     void leavesOutEquipmentThatCouldNeverConnect() {
         devices.rows.add(new Device("prn-01", "영수증 프린터", "PRINTER", "카운터", "store-01", null,
-                "192.168.0.60", 9100, true));
+                "192.168.0.60", 9100, true, null));
 
         // A printer is real 장비 and it is working; showing it as
         // "연결 끊김" on a terminal screen would be a lie about it.

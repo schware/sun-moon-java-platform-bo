@@ -51,6 +51,20 @@ export interface Device {
   ipAddress: string | null
   port: number | null
   active: boolean
+  /** KDS 만: 'MAIN' 은 주방의 중심(매장에 하나), 비어 있으면 SUB. 페어링할 때 기기에 묶입니다. */
+  kdsRole?: 'MAIN' | 'SUB' | null
+}
+
+/** Device Server 가 아는 기기별 페어링 상태 (store-app.md §3.4). */
+export interface DevicePairingRow {
+  storeId: string
+  deviceId: string
+  deviceType: TerminalType
+  kdsRole: 'MAIN' | 'SUB' | null
+  state: 'PAIRED' | 'CODE_ISSUED'
+  pairedAt: string | null
+  lastSeen: string | null
+  codeExpiresAt: string | null
 }
 
 export type ConnectionCheckResult = 'REACHABLE' | 'UNREACHABLE' | 'NO_ADDRESS'

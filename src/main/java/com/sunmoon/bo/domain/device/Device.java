@@ -37,5 +37,6 @@ public record Device(
         String terminalType,
         String ipAddress,
         Integer port,
-        boolean active) {
+        boolean active,
+        String kdsRole) {
 }

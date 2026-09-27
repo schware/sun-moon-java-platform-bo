@@ -13,7 +13,7 @@ import java.util.Optional;
 public class JdbcDeviceRepository implements DeviceRepository {
 
     private static final String COLUMNS =
-            "device_id, name, device_type, location, store_id, terminal_type, ip_address, port, active";
+            "device_id, name, device_type, location, store_id, terminal_type, ip_address, port, active, kds_role";
     private static final RowMapper<Device> MAPPER = (rs, rowNum) -> new Device(
             rs.getString("device_id"),
             rs.getString("name"),
@@ -23,7 +23,8 @@ public class JdbcDeviceRepository implements DeviceRepository {
             rs.getString("terminal_type"),
             rs.getString("ip_address"),
             (Integer) rs.getObject("port"),
-            rs.getBoolean("active"));
+            rs.getBoolean("active"),
+            rs.getString("kds_role"));
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -53,19 +54,20 @@ public class JdbcDeviceRepository implements DeviceRepository {
     @Override
     public void insert(Device device) {
         jdbcTemplate.update(
-                "INSERT INTO devices (" + COLUMNS + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                "INSERT INTO devices (" + COLUMNS + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 device.deviceId(), device.name(), device.deviceType(), device.location(),
-                device.storeId(), device.terminalType(), device.ipAddress(), device.port(), device.active());
+                device.storeId(), device.terminalType(), device.ipAddress(), device.port(), device.active(),
+                device.kdsRole());
     }
 
     @Override
     public boolean update(Device device) {
         return jdbcTemplate.update(
                 "UPDATE devices SET name = ?, device_type = ?, location = ?, store_id = ?, "
-                        + "terminal_type = ?, ip_address = ?, port = ?, active = ? WHERE device_id = ?",
+                        + "terminal_type = ?, ip_address = ?, port = ?, active = ?, kds_role = ? WHERE device_id = ?",
                 device.name(), device.deviceType(), device.location(), device.storeId(),
                 device.terminalType(), device.ipAddress(), device.port(), device.active(),
-                device.deviceId()) > 0;
+                device.kdsRole(), device.deviceId()) > 0;
     }
 
     @Override

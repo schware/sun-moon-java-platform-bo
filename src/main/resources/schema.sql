@@ -63,6 +63,11 @@ ALTER TABLE devices ADD COLUMN IF NOT EXISTS terminal_type VARCHAR(16);
 ALTER TABLE devices ADD COLUMN IF NOT EXISTS ip_address VARCHAR(45);
 ALTER TABLE devices ADD COLUMN IF NOT EXISTS port INT;
 ALTER TABLE devices ADD COLUMN IF NOT EXISTS store_id VARCHAR(64);
+-- KDS 의 역할 (umbrella docs/design/store-app.md §3.2): 'MAIN' | 'SUB' | NULL.
+-- terminal_type = 'KDS' 일 때만 뜻이 있고, 비어 있으면 SUB. MAIN 은 주방의
+-- 중심(ADR-0015) — 매장에 하나. 페어링할 때 이 값이 기기에 묶이므로, 바꾸면
+-- 그 기기는 다시 페어링해야 합니다.
+ALTER TABLE devices ADD COLUMN IF NOT EXISTS kds_role VARCHAR(8);
 
 -- 공지사항. author is the operator username as it was at posting time,
 -- not a foreign key: a notice should stay readable after its author's
