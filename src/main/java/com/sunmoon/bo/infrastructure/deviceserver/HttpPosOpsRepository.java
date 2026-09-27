@@ -142,6 +142,55 @@ public class HttpPosOpsRepository implements PosOpsRepository {
         }
     }
 
+    // ---- 재처리 (§5.8, §10) -------------------------------------------
+
+    @Override
+    public PosOps.Reprocess reprocess(String storeId) {
+        return get(uri -> {
+            uri.path("/reprocess");
+            // 비어 있으면 보내지 않습니다 — 저쪽이 "전 매장" 으로 읽습니다.
+            if (storeId != null && !storeId.isBlank()) {
+                uri.queryParam("storeId", storeId);
+            }
+            return uri.build();
+        }, PosOps.Reprocess.class);
+    }
+
+    /**
+     * POS-Server 의 재처리는 <b>본문이 아니라 쿼리</b>로 받습니다 — 저쪽
+     * 주소 모양을 그대로 따릅니다. 여기서 본문으로 바꿔 보내면 중계가
+     * 말을 옮기는 것이 아니라 번역하게 되고, 번역은 틀립니다.
+     */
+    @Override
+    public PosOps.RetryOutcome retryOne(String kind, String storeId, String id) {
+        return postQuery(uri -> {
+            uri.path("/reprocess/one").queryParam("kind", kind).queryParam("id", id);
+            if (storeId != null && !storeId.isBlank()) {
+                uri.queryParam("storeId", storeId);
+            }
+            return uri.build();
+        }, PosOps.RetryOutcome.class);
+    }
+
+    @Override
+    public PosOps.RetriedAll retryAll(String kind, String storeId) {
+        return postQuery(uri -> {
+            uri.path("/reprocess/all").queryParam("kind", kind);
+            if (storeId != null && !storeId.isBlank()) {
+                uri.queryParam("storeId", storeId);
+            }
+            return uri.build();
+        }, PosOps.RetriedAll.class);
+    }
+
+    private <T> T postQuery(Function<UriBuilder, java.net.URI> uri, Class<T> type) {
+        try {
+            return client.post().uri(uri).retrieve().body(type);
+        } catch (RestClientException e) {
+            throw new UpstreamUnavailableException("POS-SERVER", e);
+        }
+    }
+
     /** 화면이 빈 목록을 그대로 그릴 수 있게 — null 은 화면에서 한 번 더 다뤄야 합니다. */
     static <T> List<T> orEmpty(List<T> rows) {
         return rows == null ? List.of() : rows;

@@ -78,6 +78,25 @@ public class MasterCatalog {
                         MasterField.text("settle_cycle_days", "정산주기(일)").of(FieldType.NUMBER),
                         new MasterField("active", "사용", FieldType.BOOLEAN, false, true, true, null)),
                 "issuer_code"));
+
+        // 결제수단 — 이 브랜드가 **받기로 한** 것 (2026-09-27).
+        //
+        // APP-SERVER 의 PaymentMethod enum 은 서버가 **처리할 줄 아는**
+        // 것입니다. 둘은 다른 질문이고, 코드가 같아야 이어집니다 —
+        // 그래서 코드 칸에 enum 이름(SUNMOON_PAY)을 그대로 적습니다.
+        //
+        // 공통코드가 아니라 자기 표인 이유는 schema.sql 에 적혀 있습니다:
+        // 공통 CRUD 가 복합키를 못 다루고, 환불 가능 여부 같은 이 수단만의
+        // 성질이 공통코드 칸에 안 들어갑니다.
+        add(new MasterDefinition("PAY_METHOD", "결제수단", "payment_methods", "pay_method_code",
+                Screen.MASTER,
+                List.of(
+                        MasterField.key("pay_method_code", "결제수단코드"),
+                        MasterField.required("name", "결제수단명"),
+                        new MasterField("refundable", "환불 가능", FieldType.BOOLEAN, false, false, true, null),
+                        MasterField.text("sort_order", "표시순서").of(FieldType.NUMBER),
+                        new MasterField("active", "사용", FieldType.BOOLEAN, false, true, true, null)),
+                "sort_order, pay_method_code"));
     }
 
     private void add(MasterDefinition definition) {

@@ -172,4 +172,57 @@ public class PosOpsController {
                 request.urgent(), request.startsAt(), request.endsAt(),
                 who == null ? "bo" : who.getName()));
     }
+
+    // ---- 재처리 (§5.8, §10) -------------------------------------------
+
+    @GetMapping("/reprocess")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasAuthority('REPROCESS_VIEW')")
+    @Operation(summary = "지금 손봐야 할 것",
+            description = "매출 분해 · 마스터 적용 · 프로그램 설치의 실패가 종류별로 나옵니다. "
+                    + "실패가 없는 종류도 count 0 으로 나옵니다 — 화면이 \"전부 정상\" 을 그릴 수 "
+                    + "있어야 합니다. storeId 를 비우면 전 매장입니다.")
+    @ApiResponse(responseCode = "502", description = "POS-Server에 연결하지 못했습니다")
+    public PosOps.Reprocess reprocess(@RequestParam(required = false) String storeId) {
+        return posOps.reprocess(storeId);
+    }
+
+    /**
+     * 한 건을 다시 하게 겁니다.
+     *
+     * <p><b>누가 눌렀는지를 여기서 남깁니다.</b> POS-Server 의 재처리는
+     * 누가 눌렀는지를 받지 않습니다 — 저쪽은 장비와 매출의 사실만 갖고,
+     * 사람은 BO 가 압니다. 같은 건을 세 번째 되돌리는 사람이 누구인지는
+     * 나중에 반드시 묻게 됩니다.
+     */
+    @PostMapping("/reprocess/one")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasAuthority('REPROCESS_SAVE')")
+    @Operation(summary = "한 건 재처리",
+            description = "done 이 거짓이면 걸어 둔 것이지 다시 한 것이 아닙니다 — 매출은 다음 "
+                    + "배치(30초 이내)에, 마스터·프로그램은 장비가 다음에 물어볼 때 처리됩니다.")
+    public PosOps.RetryOutcome retryOne(@RequestParam String kind,
+                                        @RequestParam String id,
+                                        @RequestParam(required = false) String storeId,
+                                        Authentication who) {
+        PosOps.RetryOutcome outcome = posOps.retryOne(kind, storeId, id);
+        log.info("재처리 {} #{} — {} (by {})", kind, id, outcome.message(),
+                who == null ? "?" : who.getName());
+        return outcome;
+    }
+
+    @PostMapping("/reprocess/all")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasAuthority('REPROCESS_SAVE')")
+    @Operation(summary = "그 종류 전부 재처리",
+            description = "그 종류의 실패를 전부 다시 하게 겁니다. 규칙을 고친 뒤 한꺼번에 "
+                    + "다시 푸는 경우가 이것입니다.")
+    public PosOps.RetriedAll retryAll(@RequestParam String kind,
+                                      @RequestParam(required = false) String storeId,
+                                      Authentication who) {
+        PosOps.RetriedAll retried = posOps.retryAll(kind, storeId);
+        log.info("재처리 전부 {} 매장={} — 건 {} / 실패 {} (by {})", kind,
+                storeId == null ? "전체" : storeId, retried.queued(), retried.failed(),
+                who == null ? "?" : who.getName());
+        return retried;
+    }
+
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PosOpsController.class);
 }

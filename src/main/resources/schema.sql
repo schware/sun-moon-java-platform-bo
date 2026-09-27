@@ -253,6 +253,36 @@ CREATE TABLE IF NOT EXISTS card_issuers (
     active BOOLEAN NOT NULL DEFAULT TRUE
 );
 
+-- 결제수단 — **이 브랜드가 받는 것** (2026-09-27).
+--
+-- APP-SERVER 의 PaymentMethod enum 과 다른 질문에 답합니다:
+--
+--   enum            이 서버가 **처리할 줄 아는** 방식  (코드가 정함)
+--   이 표           이 브랜드가 **받기로 한** 방식     (운영자가 정함)
+--
+-- 둘이 한 곳이면 결제수단 하나를 끄려고 배포를 해야 합니다. 반대로 표만
+-- 있으면 서버가 처리 못 하는 수단을 운영자가 켤 수 있습니다. 그래서
+-- 둘 다 있고, **코드가 같아야 이어집니다** — pay_method_code 는 enum 의
+-- 이름과 같게 적습니다 (지금은 SUNMOON_PAY 하나).
+--
+-- 공통코드(common_codes)에 넣지 않은 이유: 공통 CRUD 가 복합키를 못
+-- 다루고, 공통코드의 키가 (그룹, 코드) 둘입니다. 그리고 환불 가능 여부
+-- 같은 **이 수단만의 성질**이 공통코드의 이름·순서 칸에는 들어가지
+-- 않습니다.
+--
+-- 행을 여기서 심지 않습니다. BO 의 기준정보는 화면으로 들어가고, 그래야
+-- master_audit 에 누가 넣었는지가 남습니다.
+CREATE TABLE IF NOT EXISTS payment_methods (
+    pay_method_code VARCHAR(32) PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    -- 받은 것을 돌려줄 수 있는가. 썬앤문페이는 "현금과 같은 개념"이라
+    -- 돌려줍니다(umbrella docs/adr/0012). 나중에 붙을 포인트나
+    -- 상품권은 아닐 수 있고, 그때 환불 흐름이 이 값을 봅니다.
+    refundable BOOLEAN NOT NULL DEFAULT TRUE,
+    sort_order INT,
+    active BOOLEAN NOT NULL DEFAULT TRUE
+);
+
 -- 누가 무엇을 어떻게 바꿨나 (§6.2 "접속과 변경 로그").
 --
 -- 공통 CRUD의 가장 큰 값어치가 이 표입니다. 화면을 손으로 마흔 벌

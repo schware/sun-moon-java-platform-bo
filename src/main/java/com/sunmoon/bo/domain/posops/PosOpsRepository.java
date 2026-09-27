@@ -42,4 +42,13 @@ public interface PosOpsRepository {
     PosOps.ReleasePublished publishRelease(PosOps.ReleaseRequest request);
 
     PosOps.NoticePublished publishNotice(PosOps.NoticeRequest request);
+
+    /** 실패해 있는 것들. {@code storeId} 가 비면 전 매장입니다. */
+    PosOps.Reprocess reprocess(String storeId);
+
+    /** 한 건을 다시 하게 겁니다. */
+    PosOps.RetryOutcome retryOne(String kind, String storeId, String id);
+
+    /** 그 종류를 전부 다시 하게 겁니다. */
+    PosOps.RetriedAll retryAll(String kind, String storeId);
 }

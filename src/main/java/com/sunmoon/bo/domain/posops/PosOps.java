@@ -138,6 +138,48 @@ public final class PosOps {
     public record ReleasePublished(long id, String program, String version, String scope) {
     }
 
+    // ---- 재처리 (§5.8, §10) -------------------------------------------
+
+    /**
+     * 지금 손봐야 할 것 전부. 종류마다 한 칸입니다.
+     *
+     * <p><b>실패가 없는 종류도 나옵니다</b>(count 0). 화면이 "전부 정상"
+     * 을 그릴 수 있어야 하고, 칸이 사라지면 "없다" 와 "안 불러왔다" 가
+     * 같은 그림이 됩니다.
+     */
+    public record Reprocess(String storeId, List<ReprocessKind> kinds) {
+    }
+
+    /**
+     * @param kind  {@code SALE} · {@code ETC} · {@code MASTER} · {@code PROGRAM}.
+     *              POS-Server 가 정하고 BO 는 그대로 씁니다 — 여기서 목록을
+     *              고정하면 저쪽에 종류가 늘 때 BO 를 다시 배포해야 합니다.
+     */
+    public record ReprocessKind(String kind, String label, int count, List<FailedEntry> items) {
+    }
+
+    /**
+     * @param summary 그 건을 가리키는 말 — "2026-09-24 pos-01 / 000503".
+     *                내부 id 는 화면이 되돌릴 때만 씁니다.
+     * @param error   실패 사유. <b>그대로</b> 보여줍니다 — 요약하면 다시
+     *                돌려도 되는지 판단할 근거가 사라집니다.
+     */
+    public record FailedEntry(String id, String storeId, String summary, String error,
+                              int attempts, Instant failedAt) {
+    }
+
+    /**
+     * @param accepted 그 건이 있었고 다시 할 대상이 됐는가.
+     * @param done     POS-Server 가 <b>지금</b> 다시 했는가. 거짓이면 걸어
+     *                 뒀을 뿐이고 실제 처리는 나중입니다 — 매출은 다음
+     *                 배치에서, 마스터·프로그램은 장비가 물어볼 때.
+     */
+    public record RetryOutcome(String kind, String id, boolean accepted, boolean done, String message) {
+    }
+
+    public record RetriedAll(String kind, int queued, int failed) {
+    }
+
     private PosOps() {
     }
 }

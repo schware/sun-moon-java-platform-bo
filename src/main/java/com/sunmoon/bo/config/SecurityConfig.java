@@ -63,8 +63,8 @@ public class SecurityConfig {
                         // The SPA's own routes. They forward to index.html
                         // (WebConfig); the screens behind them still fetch an
                         // API that checks the session and the permission.
-                        .requestMatchers("/board", "/common-code", "/devices", "/menus", "/stores",
-                                "/sales", "/app-sales", "/terminals", "/operators", "/tables", "/sold-out").permitAll()
+                        // 목록은 SpaRoutes 한 곳 — WebConfig 와 같은 것을 봅니다.
+                        .requestMatchers(SpaRoutes.securityPatterns()).permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .anyRequest().authenticated())
                 .formLogin(form -> form

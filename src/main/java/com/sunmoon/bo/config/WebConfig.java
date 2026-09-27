@@ -21,13 +21,11 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
-        // Every client route needs a line here. /menus and /stores were
-        // missing from 2026-09-10 until 2026-09-15: the screens worked when
-        // navigated to, and a refresh on either one 404'd.
-        String[] routes = {
-                "/board", "/common-code", "/devices", "/menus", "/stores",
-                "/sales", "/app-sales", "/terminals", "/operators", "/tables", "/sold-out"};
-        for (String route : routes) {
+        // 목록은 SpaRoutes 한 곳입니다. 여기와 SecurityConfig 가 각자
+        // 들고 있을 때 두 번 어긋났습니다 — /menus·/stores(2026-09-10~15),
+        // POS 운영 네 화면과 기준정보(2026-09-17~27). 둘 다 눌러서
+        // 들어가면 멀쩡하고 새로고침에서만 죽어서 한참 몰랐습니다.
+        for (String route : SpaRoutes.ROUTES) {
             registry.addViewController(route).setViewName("forward:/index.html");
         }
     }

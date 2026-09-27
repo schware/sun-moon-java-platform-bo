@@ -13,7 +13,7 @@ import type { Me } from './api'
 export const SCREENS = [
   'BOARD', 'COMMON_CODE', 'DEVICE', 'MENU', 'SOLD_OUT', 'STORE', 'TABLE',
   'SALES', 'APP_SALES', 'TERMINAL',
-  'POS_BUSINESS', 'POS_LIVE', 'POS_DEPLOY', 'POS_NOTICE',
+  'POS_BUSINESS', 'POS_LIVE', 'POS_DEPLOY', 'POS_NOTICE', 'REPROCESS',
   'MASTER',
   'OPERATOR'
 ] as const
@@ -41,6 +41,7 @@ export const SCREEN_LABEL: Record<Screen, string> = {
   POS_LIVE: 'Live Check',
   POS_DEPLOY: '배포 현황',
   POS_NOTICE: '단말 공지',
+  REPROCESS: '재처리',
   MASTER: '기준정보',
   OPERATOR: '운영자'
 }
@@ -80,7 +81,12 @@ export const SCREEN_ACTIONS: Partial<Record<Screen, readonly Action[]>> = {
 
   // 공지는 걸거나 안 겁니다. 고치는 것이 없는 이유: 이미 단말에 뜬
   // 글을 고치면 본 사람과 안 본 사람이 서로 다른 글을 봅니다.
-  POS_NOTICE: ['VIEW', 'CREATE']
+  POS_NOTICE: ['VIEW', 'CREATE'],
+
+  // 재처리는 보거나 되돌립니다. 되돌리기가 SAVE 인 이유: 새로 만드는
+  // 것이 아니라 **있는 건의 상태를 바꾸는** 일입니다. DELETE 가 없는
+  // 것은 이 플랫폼의 규칙 그대로입니다 — 실패한 원본은 지우지 않습니다.
+  REPROCESS: ['VIEW', 'SAVE']
 }
 
 /** 이 화면에서 줄 수 있는 권한인가. 못 주는 칸은 체크박스를 죽입니다. */
@@ -156,6 +162,7 @@ export const MENU: MenuItem[] = [
   { group: 'POS', screen: 'POS_LIVE', path: '/pos-live', label: SCREEN_LABEL.POS_LIVE },
   { group: 'POS', screen: 'POS_DEPLOY', path: '/pos-deploy', label: SCREEN_LABEL.POS_DEPLOY },
   { group: 'POS', screen: 'POS_NOTICE', path: '/pos-notices', label: SCREEN_LABEL.POS_NOTICE },
+  { group: 'POS', screen: 'REPROCESS', path: '/reprocess', label: SCREEN_LABEL.REPROCESS },
 
   { group: 'APP', screen: 'TABLE', path: '/tables', label: SCREEN_LABEL.TABLE },
   { group: 'APP', screen: 'APP_SALES', path: '/app-sales', label: '매출 조회' },
