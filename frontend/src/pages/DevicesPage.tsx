@@ -262,6 +262,7 @@ export default function DevicesPage({ me }: { me: Me }) {
               <option value="POS">POS</option>
               <option value="KDS">KDS</option>
               <option value="DID">DID</option>
+              <option value="KIOSK">KIOSK — 캐셔 없는 POS (SunMoon Store 앱)</option>
             </select>
           </div>
           {form.terminalType === 'KDS' && (

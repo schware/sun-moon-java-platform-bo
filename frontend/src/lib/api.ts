@@ -38,7 +38,7 @@ export interface CommonCode {
   active: boolean
 }
 
-export type TerminalType = 'POS' | 'KDS' | 'DID'
+export type TerminalType = 'POS' | 'KDS' | 'DID' | 'KIOSK'
 
 export interface Device {
   deviceId: string

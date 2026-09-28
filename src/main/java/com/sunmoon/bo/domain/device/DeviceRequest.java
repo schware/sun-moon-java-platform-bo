@@ -11,7 +11,7 @@ public record DeviceRequest(
         @NotBlank String deviceType,
         String location,
         String storeId,
-        @Pattern(regexp = "POS|KDS|DID", message = "terminalType must be POS, KDS or DID") String terminalType,
+        @Pattern(regexp = "POS|KDS|DID|KIOSK", message = "terminalType must be POS, KDS, DID or KIOSK") String terminalType,
         String ipAddress,
         @Min(1) @Max(65535) Integer port,
         Boolean active,
