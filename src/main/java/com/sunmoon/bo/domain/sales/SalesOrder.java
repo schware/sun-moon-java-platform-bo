@@ -69,7 +69,14 @@ public record SalesOrder(
         java.util.List<Line> lines,
         LocalDate businessDate,
         Instant placedAt,
-        Instant updatedAt) {
+        Instant updatedAt,
+        /**
+         * KDS-MAIN 이 남은 줄을 강제로 끝냈으면 그 기기 (umbrella store-app.md §4.1).
+         * 번호 확인 없는 수령과 같은 자리에 보입니다 — 둘 다 "지나간 우회로" 입니다.
+         */
+        String forceProducedBy,
+        /** MAIN 이 끊긴 동안 SUB 가 내준 수령인가 (§4.2). 2026-09-28 이전 주문은 false. */
+        boolean pickupEmergency) {
 
     /** 테이블 QR로 들어온 주문인가. 아니면 매장 선택 화면에서 온 것입니다. */
     public boolean fromTable() {

@@ -251,6 +251,16 @@ export default function SalesPage({ me }: { me: Me }) {
                                           봐야 할 노란 줄이 안 보입니다.
                                         */}
                                         <td>
+                                          {order.forceProducedBy && (
+                                            <span className="badge warn" title={`강제 완료: ${order.forceProducedBy}`}>
+                                              강제 완료
+                                            </span>
+                                          )}{' '}
+                                          {order.pickupEmergency && (
+                                            <span className="badge warn" title="KDS-MAIN 이 끊긴 동안 SUB 가 내줌">
+                                              비상 수령
+                                            </span>
+                                          )}{' '}
                                           {order.pickupOverride ? (
                                             <span className="badge warn" title={order.pickupBy ?? ''}>
                                               번호 확인 없음

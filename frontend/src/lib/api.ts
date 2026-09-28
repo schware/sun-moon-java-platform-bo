@@ -148,6 +148,10 @@ export interface SalesOrder {
    * (그러면 수령번호가 이미 장식입니다).
    */
   pickupOverride: boolean
+  /** KDS-MAIN 이 남은 줄을 강제로 끝냈으면 그 기기 (store-app.md §4.1). */
+  forceProducedBy?: string | null
+  /** MAIN 이 끊긴 동안 SUB 가 내준 수령 (§4.2). */
+  pickupEmergency?: boolean
   /**
    * 주문의 줄들 (§4.4.2).
    *
