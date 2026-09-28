@@ -119,6 +119,35 @@ export default function DevicesPage({ me }: { me: Me }) {
     }
   }
 
+  // KIOSK 관리자 PIN (store-app.md §5.3) — 화면에 남기지 않도록 password 칸, 보내고 나면 비웁니다.
+  const [pinFor, setPinFor] = useState<Device | null>(null)
+  const [pin, setPin] = useState('')
+  const [pinAgain, setPinAgain] = useState('')
+  const [pinNote, setPinNote] = useState<string | null>(null)
+
+  async function savePin(event: FormEvent) {
+    event.preventDefault()
+    if (!pinFor) return
+    if (!/^[0-9]{4,8}$/.test(pin)) {
+      setPinNote('PIN 은 숫자 4~8자리입니다')
+      return
+    }
+    if (pin !== pinAgain) {
+      setPinNote('두 번 넣은 PIN 이 다릅니다')
+      return
+    }
+    try {
+      await apiWrite('POST', `/devices/${encodeURIComponent(pinFor.deviceId)}/kiosk-pin`, { pin })
+      setPinNote(`${pinFor.deviceId} 의 관리자 PIN 을 정했습니다`)
+      setPinFor(null)
+    } catch (e) {
+      setPinNote(e instanceof Error ? e.message : 'PIN 을 정하지 못했습니다')
+    } finally {
+      setPin('')
+      setPinAgain('')
+    }
+  }
+
   async function unpair(row: Device) {
     if (!window.confirm(`${row.deviceId} 의 페어링을 해제할까요? 그 기기는 코드를 다시 넣어야 합니다.`)) return
     setError(null)
@@ -215,6 +244,33 @@ export default function DevicesPage({ me }: { me: Me }) {
 
       {error && <div className="error" role="alert">{error}</div>}
       {pairingError && <div className="error" role="alert">페어링 상태: {pairingError}</div>}
+
+      {pinNote && !pinFor && <div className="muted" role="status">{pinNote}</div>}
+      {pinFor && (
+        <form className="panel" onSubmit={(e) => void savePin(e)}>
+          <h2>{pinFor.deviceId} 관리자 PIN</h2>
+          <p className="muted">
+            KIOSK 화면 왼쪽 위 구석을 5번 누르면 이 PIN 을 묻습니다. 맞으면 잠금이 풀려 앱을 끄거나
+            페어링을 지울 수 있습니다. 숫자 4~8자리. BO 에는 남지 않습니다.
+          </p>
+          <div className="field">
+            <label htmlFor="kioskPin">PIN</label>
+            <input id="kioskPin" type="password" inputMode="numeric" autoComplete="new-password"
+                   value={pin} onChange={(e) => setPin(e.target.value)} />
+          </div>
+          <div className="field">
+            <label htmlFor="kioskPinAgain">한 번 더</label>
+            <input id="kioskPinAgain" type="password" inputMode="numeric" autoComplete="new-password"
+                   value={pinAgain} onChange={(e) => setPinAgain(e.target.value)} />
+          </div>
+          {pinNote && <div className="error" role="alert">{pinNote}</div>}
+          <div className="row">
+            <button className="btn primary" type="submit">정하기</button>
+            <button className="btn" type="button"
+                    onClick={() => { setPinFor(null); setPin(''); setPinAgain(''); setPinNote(null) }}>취소</button>
+          </div>
+        </form>
+      )}
 
       {issued && (
         <div className="panel" role="status">
@@ -385,6 +441,10 @@ export default function DevicesPage({ me }: { me: Me }) {
                               {p?.state === 'PAIRED' && (
                                 <button className="btn danger" disabled={!maySave}
                                         onClick={() => void unpair(row)}>해제</button>
+                              )}
+                              {row.terminalType === 'KIOSK' && (
+                                <button className="btn" disabled={!maySave}
+                                        onClick={() => { setPinNote(null); setPinFor(row) }}>관리자 PIN</button>
                               )}
                             </div>
                           )

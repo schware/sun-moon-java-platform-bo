@@ -18,6 +18,12 @@ public interface DevicePairing {
     /** {@code {revoked}} */
     Map<String, Object> revoke(Device device);
 
+    /**
+     * KIOSK 관리자 PIN (store-app.md §5.3). BO 는 PIN 을 저장하지 않고 Device Server 에
+     * 넘깁니다 — 거기서 해시만 남습니다. {@code {set}}
+     */
+    Map<String, Object> setKioskPin(Device device, String pin, String setBy);
+
     /** 기기별 {@code state}(PAIRED | CODE_ISSUED), {@code pairedAt}, {@code lastSeen}, {@code codeExpiresAt}. */
     List<Map<String, Object>> devices(String storeId);
 }

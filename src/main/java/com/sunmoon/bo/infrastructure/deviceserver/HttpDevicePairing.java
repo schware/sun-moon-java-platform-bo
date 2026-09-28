@@ -41,6 +41,14 @@ public class HttpDevicePairing implements DevicePairing {
     }
 
     @Override
+    public Map<String, Object> setKioskPin(Device device, String pin, String setBy) {
+        Map<String, Object> body = identity(device);
+        body.put("pin", pin);
+        body.put("setBy", setBy);
+        return post("/pos/devices/kiosk-pin", body);
+    }
+
+    @Override
     public List<Map<String, Object>> devices(String storeId) {
         try {
             List<Map<String, Object>> rows = client.get()

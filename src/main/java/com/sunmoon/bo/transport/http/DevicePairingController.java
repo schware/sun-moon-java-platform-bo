@@ -78,6 +78,32 @@ public class DevicePairingController {
         return ResponseEntity.ok(pairing.revoke(device.get()));
     }
 
+    /** PIN 본문 — 로그에 남지 않게 따로 받습니다. */
+    public record KioskPinRequest(String pin) {
+    }
+
+    @PostMapping("/{deviceId}/kiosk-pin")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasAuthority('DEVICE_SAVE')")
+    @Operation(summary = "KIOSK 관리자 PIN",
+            description = "화면 구석 5번 + 이 PIN 으로 KIOSK 잠금을 풉니다. 숫자 4~8자리. BO 는 저장하지 않고 "
+                    + "POS-SERVER 로 넘기며, 거기에는 해시만 남습니다.")
+    public ResponseEntity<?> setKioskPin(@PathVariable String deviceId,
+                                         @org.springframework.web.bind.annotation.RequestBody KioskPinRequest request,
+                                         Authentication who) {
+        Optional<Device> device = devices.find(deviceId);
+        if (device.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "No such device: " + deviceId));
+        }
+        if (!"KIOSK".equals(device.get().terminalType()) || device.get().storeId() == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "매장이 정해진 KIOSK 장비에만 PIN 을 둡니다"));
+        }
+        String pin = request == null ? null : request.pin();
+        if (pin == null || !pin.matches("[0-9]{4,8}")) {
+            return ResponseEntity.badRequest().body(Map.of("error", "PIN 은 숫자 4~8자리입니다"));
+        }
+        return ResponseEntity.ok(pairing.setKioskPin(device.get(), pin, who == null ? "bo" : who.getName()));
+    }
+
     /** 페어링은 "이 매장의 이 번호의 이 종류" 를 묶는 일이라, 하나라도 없으면 묶을 것이 없습니다. */
     static String cannotPair(Device device) {
         if (device.storeId() == null || device.storeId().isBlank()) {
