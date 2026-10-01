@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import {
   apiGet, apiWrite,
-  type ConnectionCheckResult, type Device, type DevicePairingRow, type Me, type Store, type TerminalType
+  type ConnectionCheckResult, type Device, type Me, type Store, type TerminalType
 } from '../lib/api'
 import { can } from '../lib/permissions'
 
@@ -11,17 +11,6 @@ type CheckState = 'checking' | ConnectionCheckResult
 const BLANK: Device = {
   deviceId: '', name: '', deviceType: '', location: '', storeId: null,
   terminalType: null, ipAddress: '', port: null, active: true, kdsRole: null
-}
-
-/** 발급된 코드는 이 화면에서 한 번만 보입니다 — Device Server 도 코드를 다시 알려주지 않습니다. */
-type IssuedCode = { deviceId: string; code: string; expiresAt: string }
-
-function pairingKey(storeId: string | null, deviceId: string, type: string | null) {
-  return `${storeId ?? ''}|${deviceId}|${type ?? ''}`
-}
-
-function hhmm(iso: string | null) {
-  return iso ? new Date(iso).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }) : ''
 }
 
 const CHECK_LABEL: Record<CheckState, string> = {
@@ -41,9 +30,6 @@ export default function DevicesPage({ me }: { me: Me }) {
   const [form, setForm] = useState<Device>(BLANK)
   const [busy, setBusy] = useState(false)
   const [checks, setChecks] = useState<Record<string, CheckState>>({})
-  const [pairing, setPairing] = useState<Record<string, DevicePairingRow>>({})
-  const [pairingError, setPairingError] = useState<string | null>(null)
-  const [issued, setIssued] = useState<IssuedCode | null>(null)
 
   const mayView = can(me, 'DEVICE', 'VIEW')
   const mayCreate = can(me, 'DEVICE', 'CREATE')
@@ -81,43 +67,10 @@ export default function DevicesPage({ me }: { me: Me }) {
     }
   }, [mayReadCodes])
 
-  // 페어링 상태는 Device Server 의 것이라 따로 읽습니다. 못 읽어도 장비 목록은 그대로 보입니다 —
-  // 기준 정보 관리가 Device Server 에 매이지 않게.
-  const loadPairing = useCallback(async () => {
-    if (!mayView) return
-    try {
-      const list = await apiGet<DevicePairingRow[]>('/devices/pairing')
-      const byKey: Record<string, DevicePairingRow> = {}
-      for (const p of list) {
-        const key = pairingKey(p.storeId, p.deviceId, p.deviceType)
-        // 페어링된 것이 코드 발급보다 앞섭니다 — 둘 다 있으면 다시 페어링하는 중이지만 지금은 페어링된 상태.
-        if (!byKey[key] || p.state === 'PAIRED') byKey[key] = p
-      }
-      setPairing(byKey)
-      setPairingError(null)
-    } catch (e) {
-      setPairingError(e instanceof Error ? e.message : 'POS-SERVER 에서 페어링 상태를 읽지 못했습니다')
-    }
-  }, [mayView])
-
   useEffect(() => {
     void load()
     void loadTypes()
-    void loadPairing()
-  }, [load, loadTypes, loadPairing])
-
-  async function issueCode(row: Device) {
-    setError(null)
-    try {
-      const res = await apiWrite<{ code: string; expiresAt: string }>(
-        'POST', `/devices/${encodeURIComponent(row.deviceId)}/pairing-code`
-      )
-      if (res) setIssued({ deviceId: row.deviceId, code: res.code, expiresAt: res.expiresAt })
-      await loadPairing()
-    } catch (e) {
-      setError(e instanceof Error ? e.message : '페어링 코드를 받지 못했습니다')
-    }
-  }
+  }, [load, loadTypes])
 
   // KIOSK 관리자 PIN (store-app.md §5.3) — 화면에 남기지 않도록 password 칸, 보내고 나면 비웁니다.
   const [pinFor, setPinFor] = useState<Device | null>(null)
@@ -145,17 +98,6 @@ export default function DevicesPage({ me }: { me: Me }) {
     } finally {
       setPin('')
       setPinAgain('')
-    }
-  }
-
-  async function unpair(row: Device) {
-    if (!window.confirm(`${row.deviceId} 의 페어링을 해제할까요? 그 기기는 코드를 다시 넣어야 합니다.`)) return
-    setError(null)
-    try {
-      await apiWrite('POST', `/devices/${encodeURIComponent(row.deviceId)}/unpair`)
-      await loadPairing()
-    } catch (e) {
-      setError(e instanceof Error ? e.message : '해제하지 못했습니다')
     }
   }
 
@@ -243,7 +185,6 @@ export default function DevicesPage({ me }: { me: Me }) {
       </p>
 
       {error && <div className="error" role="alert">{error}</div>}
-      {pairingError && <div className="error" role="alert">페어링 상태: {pairingError}</div>}
 
       {pinNote && !pinFor && <div className="muted" role="status">{pinNote}</div>}
       {pinFor && (
@@ -251,7 +192,7 @@ export default function DevicesPage({ me }: { me: Me }) {
           <h2>{pinFor.deviceId} 관리자 PIN</h2>
           <p className="muted">
             KIOSK 화면 왼쪽 위 구석을 5번 누르면 이 PIN 을 묻습니다. 맞으면 잠금이 풀려 앱을 끄거나
-            페어링을 지울 수 있습니다. 숫자 4~8자리. BO 에는 남지 않습니다.
+            설정을 다시 할 수 있습니다. 숫자 4~8자리. BO 에는 남지 않습니다.
           </p>
           <div className="field">
             <label htmlFor="kioskPin">PIN</label>
@@ -270,20 +211,6 @@ export default function DevicesPage({ me }: { me: Me }) {
                     onClick={() => { setPinFor(null); setPin(''); setPinAgain(''); setPinNote(null) }}>취소</button>
           </div>
         </form>
-      )}
-
-      {issued && (
-        <div className="panel" role="status">
-          <h2>{issued.deviceId} 페어링 코드</h2>
-          <p style={{ fontSize: '2.4rem', letterSpacing: '0.3em', fontWeight: 700, margin: '8px 0' }}>
-            {issued.code}
-          </p>
-          <p className="muted">
-            단말 첫 화면에 이 코드를 넣으십시오. {hhmm(issued.expiresAt)} 까지, 한 번만 쓸 수 있습니다.
-            이 창을 닫으면 코드는 다시 볼 수 없습니다 — 필요하면 새로 발급하십시오(앞의 코드는 끝납니다).
-          </p>
-          <button className="btn" onClick={() => setIssued(null)}>닫기</button>
-        </div>
       )}
 
       {editing.mode !== 'none' && (
@@ -392,7 +319,7 @@ export default function DevicesPage({ me }: { me: Me }) {
               <thead>
                 <tr>
                   <th>장비 ID</th><th>이름</th><th>유형</th><th>단말종류</th><th>매장</th>
-                  <th>위치</th><th>IP:PORT</th><th>사용</th><th>페어링</th><th /><th />
+                  <th>위치</th><th>IP:PORT</th><th>사용</th><th /><th /><th />
                 </tr>
               </thead>
               <tbody>
@@ -420,35 +347,10 @@ export default function DevicesPage({ me }: { me: Me }) {
                       </td>
                       <td>{row.active ? <span className="badge on">사용</span> : <span className="badge off">미사용</span>}</td>
                       <td className="actions">
-                        {row.terminalType && row.storeId ? (() => {
-                          const p = pairing[pairingKey(row.storeId, row.deviceId, row.terminalType)]
-                          const roleChanged = p?.state === 'PAIRED' && row.terminalType === 'KDS'
-                            && (p.kdsRole ?? 'SUB') !== (row.kdsRole ?? 'SUB')
-                          const seen = p?.lastSeen ? `마지막 접속 ${new Date(p.lastSeen).toLocaleString('ko-KR')}` : '아직 접속 전'
-                          return (
-                            <div className="row" style={{ justifyContent: 'flex-end', alignItems: 'center' }}>
-                              {p?.state === 'PAIRED' ? (
-                                <span className="muted" title={seen}>
-                                  페어링됨{roleChanged && <strong> · 역할 바뀜, 다시 페어링</strong>}
-                                </span>
-                              ) : p?.state === 'CODE_ISSUED' ? (
-                                <span className="muted">코드 발급됨 (~{hhmm(p.codeExpiresAt)})</span>
-                              ) : (
-                                <span className="muted">안 됨</span>
-                              )}
-                              <button className="btn" disabled={!maySave || !row.active}
-                                      onClick={() => void issueCode(row)}>코드</button>
-                              {p?.state === 'PAIRED' && (
-                                <button className="btn danger" disabled={!maySave}
-                                        onClick={() => void unpair(row)}>해제</button>
-                              )}
-                              {row.terminalType === 'KIOSK' && (
-                                <button className="btn" disabled={!maySave}
-                                        onClick={() => { setPinNote(null); setPinFor(row) }}>관리자 PIN</button>
-                              )}
-                            </div>
-                          )
-                        })() : <span className="muted">—</span>}
+                        {row.terminalType === 'KIOSK' && (
+                          <button className="btn" disabled={!maySave}
+                                  onClick={() => { setPinNote(null); setPinFor(row) }}>관리자 PIN</button>
+                        )}
                       </td>
                       <td className="actions">
                         <button className="btn" disabled={check === 'checking'}

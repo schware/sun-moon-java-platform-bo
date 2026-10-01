@@ -55,18 +55,6 @@ export interface Device {
   kdsRole?: 'MAIN' | 'SUB' | null
 }
 
-/** Device Server 가 아는 기기별 페어링 상태 (store-app.md §3.4). */
-export interface DevicePairingRow {
-  storeId: string
-  deviceId: string
-  deviceType: TerminalType
-  kdsRole: 'MAIN' | 'SUB' | null
-  state: 'PAIRED' | 'CODE_ISSUED'
-  pairedAt: string | null
-  lastSeen: string | null
-  codeExpiresAt: string | null
-}
-
 export type ConnectionCheckResult = 'REACHABLE' | 'UNREACHABLE' | 'NO_ADDRESS'
 
 /**
