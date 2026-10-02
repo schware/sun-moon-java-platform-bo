@@ -65,7 +65,7 @@ bo:
   # 도메인이 생기면 그때 바꿉니다 — 공인 IP는 언젠가 바뀌고, 그날 붙여둔
   # QR이 전부 죽습니다.
   qr:
-    table-base-url: ${QR_TABLE_BASE_URL:http://211.217.183.232:8085/channel-order/t/}
+    table-base-url: ${QR_TABLE_BASE_URL:http://sunmoonwork.duckdns.org:8085/channel-order/t/}
   events:
     # 결품을 menu-events 채널로 흘릴지. false 면 로그만 남기고, BO는
     # Redis 없는 기기에서도 그대로 뜹니다 — Order의 EVENTS_REDIS와
