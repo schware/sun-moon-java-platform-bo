@@ -5,9 +5,13 @@ import { can } from '../lib/permissions'
 /**
  * 재처리 — 실패한 것을 보고 다시 하게 만듭니다 (업무 정의서 §5.8, §10).
  *
- * 매출 분해 · 마스터 적용 · 프로그램 설치의 실패가 **한 화면에** 모입니다.
- * 운영자가 묻는 것은 하나라서입니다: 지금 손봐야 할 것이 있나. 그 답이
- * 세 군데면 아무도 세 군데를 다 열어보지 않습니다.
+ * 매출 분해 · 마스터 적용 · 프로그램 설치(POS-SERVER), 주문 이벤트 발행(Order),
+ * 손님 주문(APP-SERVER)의 실패가 **한 화면에** 모입니다 (2026-10-03, umbrella
+ * docs/design/reprocess-library.md). 운영자가 묻는 것은 하나라서입니다: 지금
+ * 손봐야 할 것이 있나. 그 답이 세 군데면 아무도 세 군데를 다 열어보지 않습니다.
+ *
+ * **읽지 못한 서비스는 따로 띄웁니다.** 빈 칸으로 두면 "실패 0건" 과 구분이 안
+ * 되고, 위의 "손볼 것 없음" 이 거짓말이 됩니다.
  *
  * 화면이 지키는 사실 둘:
  *
@@ -33,6 +37,7 @@ interface FailedEntry {
 }
 
 interface ReprocessKind {
+  service: string
   kind: string
   label: string
   count: number
@@ -45,6 +50,27 @@ interface RetryOutcome {
   accepted: boolean
   done: boolean
   message: string
+}
+
+interface Board {
+  kinds: ReprocessKind[]
+  unreachable: string[]
+}
+
+/** 화면에 쓰는 서비스 이름 — 주소의 이름(service)은 그대로 보내고, 보이는 것만 바꿉니다. */
+const SERVICE_LABEL: Record<string, string> = {
+  'POS-SERVER': 'POS-SERVER',
+  ORDER: 'Order',
+  'APP-SERVER': 'APP-SERVER',
+}
+
+function serviceLabel(service: string): string {
+  return SERVICE_LABEL[service] ?? service
+}
+
+/** 종류 이름은 서비스 안에서만 유일합니다. */
+function keyOf(kind: ReprocessKind): string {
+  return `${kind.service}/${kind.kind}`
 }
 
 function when(iso: string | null): string {
@@ -62,6 +88,7 @@ export default function ReprocessPage({ me }: { me: Me }) {
   const [stores, setStores] = useState<Store[]>([])
   const [storeId, setStoreId] = useState('')
   const [kinds, setKinds] = useState<ReprocessKind[]>([])
+  const [unreachable, setUnreachable] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -80,14 +107,16 @@ export default function ReprocessPage({ me }: { me: Me }) {
     setLoading(true)
     try {
       const q = storeId ? `?${new URLSearchParams({ storeId })}` : ''
-      const answer = await apiGet<{ kinds: ReprocessKind[] }>(`/pos-ops/reprocess${q}`)
+      const answer = await apiGet<Board>(`/reprocess${q}`)
       setKinds(answer.kinds ?? [])
+      setUnreachable(answer.unreachable ?? [])
       setError(null)
     } catch (e) {
       // 못 불러온 것을 "실패 없음" 으로 그리지 않습니다. 목록을 비우고
       // 이유를 띄웁니다 — 빈 표는 "전부 정상" 으로 읽힙니다.
       setError(e instanceof Error ? e.message : '재처리 목록을 불러오지 못했습니다')
       setKinds([])
+      setUnreachable([])
     } finally {
       setLoading(false)
     }
@@ -97,14 +126,14 @@ export default function ReprocessPage({ me }: { me: Me }) {
     void load()
   }, [load])
 
-  async function retryOne(kind: string, item: FailedEntry) {
+  async function retryOne(kind: ReprocessKind, item: FailedEntry) {
     if (!mayRetry) return
-    setBusy(`${kind}:${item.id}`)
+    setBusy(`${keyOf(kind)}:${item.id}`)
     setError(null)
     try {
-      const params = new URLSearchParams({ kind, id: item.id })
+      const params = new URLSearchParams({ service: kind.service, kind: kind.kind, id: item.id })
       if (item.storeId) params.set('storeId', item.storeId)
-      const outcome = await apiWrite<RetryOutcome>('POST', `/pos-ops/reprocess/one?${params}`)
+      const outcome = await apiWrite<RetryOutcome>('POST', `/reprocess/one?${params}`)
       // 서버가 준 문장을 그대로 씁니다. "다시 했다" 와 "다시 하게 걸었다" 는
       // 다른 일이고, 그 차이를 아는 것은 저쪽입니다.
       setNotice(outcome?.message ?? '다시 하게 걸었습니다')
@@ -122,13 +151,13 @@ export default function ReprocessPage({ me }: { me: Me }) {
       `${kind.label} 실패 ${kind.count}건을 전부 다시 하게 걸까요?\n\n` +
       '규칙이나 원본을 고친 뒤에 누르는 버튼입니다. 고치지 않고 누르면 같은 이유로 다시 실패합니다.'
     )) return
-    setBusy(`${kind.kind}:*`)
+    setBusy(`${keyOf(kind)}:*`)
     setError(null)
     try {
-      const params = new URLSearchParams({ kind: kind.kind })
+      const params = new URLSearchParams({ service: kind.service, kind: kind.kind })
       if (storeId) params.set('storeId', storeId)
       const answer = await apiWrite<{ queued: number; failed: number }>(
-        'POST', `/pos-ops/reprocess/all?${params}`)
+        'POST', `/reprocess/all?${params}`)
       setNotice(`${kind.label}: ${answer?.queued ?? 0}건을 다시 하게 걸었습니다` +
         ((answer?.failed ?? 0) > 0 ? ` (${answer?.failed}건은 걸지 못했습니다)` : ''))
       await load()
@@ -164,24 +193,32 @@ export default function ReprocessPage({ me }: { me: Me }) {
             <option value="">전 매장</option>
             {stores.map((s) => <option key={s.storeId} value={s.storeId}>{s.name}</option>)}
           </select>
-          {/* 못 불러왔을 때는 "정상" 배지를 띄우지 않습니다. */}
-          {!error && !loading && (total === 0
-            ? <span className="badge on">손볼 것 없음</span>
-            : <span className="badge down">실패 {total}건</span>)}
+          {/* 못 불러왔을 때는 "정상" 배지를 띄우지 않습니다 — 한 서비스라도 못 읽었으면 마찬가지. */}
+          {!error && !loading && (total > 0
+            ? <span className="badge down">실패 {total}건</span>
+            : unreachable.length === 0 && <span className="badge on">손볼 것 없음</span>)}
         </div>
+
+        {unreachable.length > 0 && (
+          <div className="error" role="alert" style={{ marginBottom: 14 }}>
+            읽지 못함: {unreachable.map(serviceLabel).join(', ')} — 이 서비스의 실패는 지금 보이지 않습니다.
+            0건이라는 뜻이 아닙니다.
+          </div>
+        )}
 
         {loading && kinds.length === 0 ? (
           <div className="empty">불러오는 중…</div>
         ) : kinds.map((kind) => (
-          <section key={kind.kind} style={{ marginBottom: 22 }}>
+          <section key={keyOf(kind)} style={{ marginBottom: 22 }}>
             <div className="row" style={{ justifyContent: 'space-between', marginBottom: 8 }}>
               <h2 style={{ fontSize: 15, margin: 0 }}>
+                <span className="badge off" title="이 실패를 들고 있고, 다시 하는 서비스">{serviceLabel(kind.service)}</span>{' '}
                 {kind.label}{' '}
                 <span className={kind.count > 0 ? 'badge down' : 'badge on'}>{kind.count}</span>
               </h2>
               {mayRetry && kind.count > 1 && (
                 <button className="btn" disabled={busy !== null} onClick={() => void retryAll(kind)}>
-                  {busy === `${kind.kind}:*` ? '거는 중…' : '전부 다시'}
+                  {busy === `${keyOf(kind)}:*` ? '거는 중…' : '전부 다시'}
                 </button>
               )}
             </div>
@@ -220,9 +257,9 @@ export default function ReprocessPage({ me }: { me: Me }) {
                             <button
                               className="btn"
                               disabled={busy !== null}
-                              onClick={() => void retryOne(kind.kind, item)}
+                              onClick={() => void retryOne(kind, item)}
                             >
-                              {busy === `${kind.kind}:${item.id}` ? '거는 중…' : '다시'}
+                              {busy === `${keyOf(kind)}:${item.id}` ? '거는 중…' : '다시'}
                             </button>
                           </td>
                         )}

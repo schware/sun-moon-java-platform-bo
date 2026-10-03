@@ -43,12 +43,5 @@ public interface PosOpsRepository {
 
     PosOps.NoticePublished publishNotice(PosOps.NoticeRequest request);
 
-    /** 실패해 있는 것들. {@code storeId} 가 비면 전 매장입니다. */
-    PosOps.Reprocess reprocess(String storeId);
-
-    /** 한 건을 다시 하게 겁니다. */
-    PosOps.RetryOutcome retryOne(String kind, String storeId, String id);
-
-    /** 그 종류를 전부 다시 하게 겁니다. */
-    PosOps.RetriedAll retryAll(String kind, String storeId);
+    // 재처리는 domain/reprocess 로 옮겼습니다(2026-10-03) — POS-SERVER 만이 아니라 Order·APP-SERVER 도 읽습니다.
 }

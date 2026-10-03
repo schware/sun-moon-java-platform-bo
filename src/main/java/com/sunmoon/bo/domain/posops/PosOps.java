@@ -151,9 +151,11 @@ public final class PosOps {
     }
 
     /**
-     * @param kind  {@code SALE} · {@code ETC} · {@code MASTER} · {@code PROGRAM}.
-     *              POS-Server 가 정하고 BO 는 그대로 씁니다 — 여기서 목록을
-     *              고정하면 저쪽에 종류가 늘 때 BO 를 다시 배포해야 합니다.
+     * @param kind  {@code SALE} · {@code ETC} · {@code MASTER} · {@code PROGRAM} (POS-SERVER),
+     *              {@code ORDER_EVENT} (Order) …. 각 서비스가 정하고 BO 는 그대로 씁니다 —
+     *              여기서 목록을 고정하면 저쪽에 종류가 늘 때 BO 를 다시 배포해야 합니다.
+     *              Order·APP-SERVER 도 같은 모양으로 답해서 이 타입으로 읽습니다
+     *              (domain/reprocess, 2026-10-03).
      */
     public record ReprocessKind(String kind, String label, int count, List<FailedEntry> items) {
     }
