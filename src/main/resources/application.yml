@@ -16,7 +16,8 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/bo_service
     username: sunmoon
-    password: sunmoon_dev_pw
+    # 비밀번호는 저장소에 두지 않습니다 — 실행 설정의 SPRING_DATASOURCE_PASSWORD (서버: /srv/sunmoon/env/*.env).
+    password: ${SPRING_DATASOURCE_PASSWORD:}
   sql:
     init:
       mode: always
@@ -24,6 +25,11 @@ spring:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
+  # 로그인 세션은 Redis 에 둡니다 (2026-10-03). Jetty 메모리에 두면 재배포할 때마다 운영자가 전원
+  # 로그아웃됐습니다. 만료 시간은 server.servlet.session.timeout(기본 30분) 그대로입니다.
+  session:
+    redis:
+      namespace: sun-moon-bo:session
 
 management:
   endpoints:

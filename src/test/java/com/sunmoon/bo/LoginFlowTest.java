@@ -38,7 +38,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * schema initialisation is off, which is enough because nothing in this
  * flow reads a table other than {@code operators}.
  */
-@SpringBootTest(properties = "spring.sql.init.mode=never")
+// 세션 저장소(Redis)는 이 시험의 관심이 아닙니다 — 컨테이너 메모리 세션으로 돌립니다.
+@SpringBootTest(properties = {"spring.sql.init.mode=never",
+        "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.session.SessionAutoConfiguration"})
 @AutoConfigureMockMvc
 class LoginFlowTest {
 

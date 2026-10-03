@@ -41,6 +41,10 @@ dependencies {
     // for hand-rolling them (see the umbrella repo's ADR-0004).
     implementation("org.springframework.boot:spring-boot-starter-security")
 
+    // 로그인 세션을 Redis 에 — 재배포해도 운영자가 로그아웃되지 않게 (2026-10-03).
+    // Redis 는 결품 알림(위 starter)으로 이미 쓰고 있어서 새로 붙는 것은 없습니다.
+    implementation("org.springframework.session:spring-session-data-redis")
+
     // 테이블 QR 이미지를 서버에서 그립니다. 인쇄가 목적이라 파일로 저장할
     // 이유가 없고(요청마다 그리면 됩니다), 이 계열에 파일 저장소도 없습니다.
     implementation("com.google.zxing:core:3.5.3")

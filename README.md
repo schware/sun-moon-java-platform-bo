@@ -189,7 +189,7 @@ CP949 gets a 400, which is a client bug that reads like a server one.
 |---|---|---|
 | `BO_ADMIN_USERNAME` / `BO_ADMIN_PASSWORD` | — | seeds the first 전체 관리자, only when no operator exists |
 | `SPRING_DATASOURCE_URL` | `jdbc:postgresql://localhost:5432/bo_service` | |
-| `SPRING_DATASOURCE_USERNAME` / `_PASSWORD` | `sunmoon` / `sunmoon_dev_pw` | |
+| `SPRING_DATASOURCE_USERNAME` / `_PASSWORD` | `sunmoon` / (없음 — 실행 설정으로 넘김) | 비밀번호는 저장소에 두지 않습니다 |
 | `SERVER_SERVLET_SESSION_COOKIE_SECURE` | `false` | must be `true` behind TLS |
 | `ORDER_SERVICE_URL` | `http://localhost:8083/order` | 매출 조회가 읽는 곳 |
 | `DEVICE_SERVER_URL` | `http://localhost:8087` | 단말 현황이 읽는 곳 |
