@@ -3,9 +3,11 @@ import { login } from '../lib/api'
 
 interface Props {
   onSignedIn: () => void | Promise<void>
+  /** 쓰던 중에 로그인이 끊겨서 여기로 왔는가. */
+  expired?: boolean
 }
 
-export default function LoginPage({ onSignedIn }: Props) {
+export default function LoginPage({ onSignedIn, expired }: Props) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -34,6 +36,11 @@ export default function LoginPage({ onSignedIn }: Props) {
         <h1>Back Office</h1>
         <p className="muted sub">운영자 계정으로 로그인하세요.</p>
 
+        {expired && !error && (
+          <div className="notice" role="status">
+            로그인이 끊겼습니다. 다시 로그인하시면 보던 화면으로 돌아갑니다.
+          </div>
+        )}
         {error && <div className="error" role="alert">{error}</div>}
 
         <div className="field">

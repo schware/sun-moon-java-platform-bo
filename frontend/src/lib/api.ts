@@ -467,6 +467,25 @@ export interface MenuPrice {
  * than cached. One extra round trip on a screen used by a handful of
  * operators is cheaper than the class of bug caching it invites.
  */
+/**
+ * 로그인이 끊겼다는 신호 — 어느 화면에서 401 을 받든 App 이 로그인 화면으로 돌립니다.
+ *
+ * 화면마다 401 을 다루게 두면, 끊긴 세션이 화면마다 다른 오류 문구로만 보이고 운영자는 무엇을 해야 하는지
+ * 모릅니다. 주소는 그대로 두므로 다시 로그인하면 보던 화면으로 돌아갑니다.
+ */
+const SESSION_LOST = 'bo:session-lost'
+
+function sessionLost(): UnauthorizedError {
+  window.dispatchEvent(new Event(SESSION_LOST))
+  return new UnauthorizedError()
+}
+
+/** @returns 듣기를 그만두는 함수 */
+export function onSessionLost(listener: () => void): () => void {
+  window.addEventListener(SESSION_LOST, listener)
+  return () => window.removeEventListener(SESSION_LOST, listener)
+}
+
 async function csrfToken(): Promise<string> {
   const res = await fetch(`${BASE}/auth/csrf`, { credentials: 'same-origin' })
   if (!res.ok) throw new Error('CSRF 토큰을 받지 못했습니다')
@@ -490,7 +509,7 @@ async function errorFrom(res: Response): Promise<Error> {
 
 export async function apiGet<T>(path: string): Promise<T> {
   const res = await fetch(BASE + path, { credentials: 'same-origin' })
-  if (res.status === 401) throw new UnauthorizedError()
+  if (res.status === 401) throw sessionLost()
   if (!res.ok) throw await errorFrom(res)
   return (await res.json()) as T
 }
@@ -509,7 +528,7 @@ export async function apiWrite<T>(method: Method, path: string, body?: unknown):
   }
 
   const res = await fetch(BASE + path, { method, headers, body: payload, credentials: 'same-origin' })
-  if (res.status === 401) throw new UnauthorizedError()
+  if (res.status === 401) throw sessionLost()
   if (!res.ok) throw await errorFrom(res)
   return res.status === 204 ? null : ((await res.json()) as T)
 }

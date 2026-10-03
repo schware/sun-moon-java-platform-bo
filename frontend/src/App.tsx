@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
-import { fetchMe, UnauthorizedError, type Me } from './lib/api'
+import { fetchMe, onSessionLost, UnauthorizedError, type Me } from './lib/api'
 import Layout from './Layout'
 import LoginPage from './pages/LoginPage'
 import HomePage from './pages/HomePage'
@@ -22,7 +22,8 @@ import ReprocessPage from './pages/ReprocessPage'
 import MasterPage from './pages/MasterPage'
 import OperatorsPage from './pages/OperatorsPage'
 
-type Session = { state: 'loading' } | { state: 'out' } | { state: 'in'; me: Me }
+/** expired: 쓰던 중에 끊겼다 — 스스로 로그아웃한 것과 구분해 로그인 화면에 알립니다. */
+type Session = { state: 'loading' } | { state: 'out'; expired?: boolean } | { state: 'in'; me: Me }
 
 export default function App() {
   const [session, setSession] = useState<Session>({ state: 'loading' })
@@ -42,6 +43,11 @@ export default function App() {
     void refresh()
   }, [refresh])
 
+  // 쓰던 중에 세션이 끊기면(401) 로그인 화면으로. 이미 로그인 화면이면(틀린 비밀번호도 401) 그대로 둡니다.
+  useEffect(() => onSessionLost(() => {
+    setSession((prev) => (prev.state === 'in' ? { state: 'out', expired: true } : prev))
+  }), [])
+
   if (session.state === 'loading') {
     return <div className="login-wrap"><p className="muted">불러오는 중…</p></div>
   }
@@ -49,7 +55,7 @@ export default function App() {
   if (session.state === 'out') {
     return (
       <Routes>
-        <Route path="*" element={<LoginPage onSignedIn={refresh} />} />
+        <Route path="*" element={<LoginPage onSignedIn={refresh} expired={session.expired} />} />
       </Routes>
     )
   }
