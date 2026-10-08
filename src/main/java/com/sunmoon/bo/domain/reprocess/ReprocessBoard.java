@@ -29,7 +29,8 @@ public class ReprocessBoard {
     }
 
     /** 서비스 칸이 붙은 종류 — 종류 이름(kind)은 서비스 안에서만 유일합니다. */
-    public record Kind(String service, String kind, String label, int count, List<PosOps.FailedEntry> items) {
+    public record Kind(String service, String kind, String label, boolean retryable, int count,
+                       List<PosOps.FailedEntry> items) {
     }
 
     private final Map<String, ReprocessSource> sources = new LinkedHashMap<>();
@@ -49,7 +50,8 @@ public class ReprocessBoard {
                     continue;
                 }
                 for (PosOps.ReprocessKind kind : answer.kinds()) {
-                    kinds.add(new Kind(source.service(), kind.kind(), kind.label(), kind.count(),
+                    kinds.add(new Kind(source.service(), kind.kind(), kind.label(),
+                            kind.retryable() == null || kind.retryable(), kind.count(),
                             kind.items() == null ? List.of() : kind.items()));
                 }
             } catch (RuntimeException e) {

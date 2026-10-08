@@ -49,7 +49,8 @@ class ReprocessBoardTest {
         for (int i = 1; i <= count; i++) {
             items.add(new PosOps.FailedEntry(String.valueOf(i), "store-01", "건 " + i, "사유", 1, Instant.EPOCH));
         }
-        return new PosOps.Reprocess("store-01", List.of(new PosOps.ReprocessKind(kind, kind + " 라벨", count, items)));
+        return new PosOps.Reprocess("store-01", List.of(new PosOps.ReprocessKind(kind, kind + " 라벨",
+                kind.startsWith("ORDER_DUP") ? Boolean.FALSE : null, count, items)));
     }
 
     private final Fake pos = new Fake("POS-SERVER", answer("SALE", 0));
@@ -80,6 +81,17 @@ class ReprocessBoardTest {
         board.retryOne(null, "SALE", null, "3");
 
         assertThat(pos.calls).containsExactly("one SALE 3");
+    }
+
+    @Test
+    void retryableDefaultsToTrueAndFindOnlyKindsSayFalse() {
+        ReprocessBoard mixed = new ReprocessBoard(List.of(
+                new Fake("POS-SERVER", answer("SALE", 0)), new Fake("ORDER", answer("ORDER_DUPLICATE", 1))));
+
+        List<ReprocessBoard.Kind> kinds = mixed.list(null).kinds();
+
+        assertThat(kinds.get(0).retryable()).as("칸이 없는 옛 응답은 참").isTrue();
+        assertThat(kinds.get(1).retryable()).isFalse();
     }
 
     @Test

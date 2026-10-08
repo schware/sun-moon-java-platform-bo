@@ -157,7 +157,11 @@ public final class PosOps {
      *              Order·APP-SERVER 도 같은 모양으로 답해서 이 타입으로 읽습니다
      *              (domain/reprocess, 2026-10-03).
      */
-    public record ReprocessKind(String kind, String label, int count, List<FailedEntry> items) {
+    /**
+     * @param retryable 거짓이면 찾아내기만 하는 종류(중복 주문, 채널 불일치 …) — 화면이 "다시" 를 숨깁니다.
+     *                  null 은 참입니다: 칸이 생기기 전 서비스(Device Server, java-common 0.1.0)는 보내지 않습니다.
+     */
+    public record ReprocessKind(String kind, String label, Boolean retryable, int count, List<FailedEntry> items) {
     }
 
     /**

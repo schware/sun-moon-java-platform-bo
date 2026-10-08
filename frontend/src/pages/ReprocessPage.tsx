@@ -40,6 +40,8 @@ interface ReprocessKind {
   service: string
   kind: string
   label: string
+  /** 거짓이면 찾아내기만 하는 종류 — "다시" 를 숨기고 원래 자리에서 처리하라고 알립니다. */
+  retryable?: boolean
   count: number
   items: FailedEntry[]
 }
@@ -66,6 +68,11 @@ const SERVICE_LABEL: Record<string, string> = {
 
 function serviceLabel(service: string): string {
   return SERVICE_LABEL[service] ?? service
+}
+
+/** 칸이 없는 옛 응답(Device Server)은 "다시" 할 수 있는 종류입니다. */
+function retryable(kind: ReprocessKind): boolean {
+  return kind.retryable !== false
 }
 
 /** 종류 이름은 서비스 안에서만 유일합니다. */
@@ -216,15 +223,20 @@ export default function ReprocessPage({ me }: { me: Me }) {
                 {kind.label}{' '}
                 <span className={kind.count > 0 ? 'badge down' : 'badge on'}>{kind.count}</span>
               </h2>
-              {mayRetry && kind.count > 1 && (
+              {mayRetry && retryable(kind) && kind.count > 1 && (
                 <button className="btn" disabled={busy !== null} onClick={() => void retryAll(kind)}>
                   {busy === `${keyOf(kind)}:*` ? '거는 중…' : '전부 다시'}
                 </button>
               )}
             </div>
 
+            {!retryable(kind) && kind.count > 0 && (
+              <div className="muted" style={{ fontSize: 13, marginBottom: 8 }}>
+                찾아낸 목록입니다 — 여기서 "다시" 하지 않습니다. 원래 자리(POS · 환불 판단 등)에서 처리하면 사라집니다.
+              </div>
+            )}
             {kind.count === 0 ? (
-              <div className="muted" style={{ fontSize: 13 }}>실패 없음</div>
+              <div className="muted" style={{ fontSize: 13 }}>{retryable(kind) ? '실패 없음' : '찾아낸 것 없음'}</div>
             ) : (
               <div className="table-wrap">
                 <table>
@@ -235,7 +247,7 @@ export default function ReprocessPage({ me }: { me: Me }) {
                       <th>사유</th>
                       <th style={{ textAlign: 'right' }}>시도</th>
                       <th>언제</th>
-                      {mayRetry && <th />}
+                      {mayRetry && retryable(kind) && <th />}
                     </tr>
                   </thead>
                   <tbody>
@@ -252,7 +264,7 @@ export default function ReprocessPage({ me }: { me: Me }) {
                             : item.attempts}
                         </td>
                         <td>{when(item.failedAt)}</td>
-                        {mayRetry && (
+                        {mayRetry && retryable(kind) && (
                           <td>
                             <button
                               className="btn"
